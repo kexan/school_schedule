@@ -11,7 +11,7 @@ axum-login = { version = '0.17.0' }
 tower-sessions-redis-store = { version = '0.16.0' }
 password-auth = { version = '1.0.0' }
 tokio = { version = '1.45.0', features = ['full'] }
-diesel = { version = '2.2.10', features = ['postgres', 'r2d2', 'uuid'] }
+diesel = { version = '2.2.10', features = ['postgres', 'chrono', 'r2d2', 'uuid'] }
 
 # Swagger generation
 utoipa = { version = "5.3.1", features = ['axum_extras', 'preserve_order', 'preserve_path_order'] }
@@ -22,3 +22,4 @@ utoipa-swagger-ui = { version = '9.0.1', features = ['axum'] }
 dotenvy = { version = '0.15.7' }
 serde = { version = '1.0.219', features = ['derive'] }
 strum = { version = '0.27.1', features = ['derive'] }
+chrono = { version = '0.4.41', features = ['serde']}
