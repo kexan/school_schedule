@@ -1,0 +1,24 @@
+[package]
+name = "school_schedule"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+
+# Server, db, auth
+axum = { version = '0.8.4', features = ['multipart'] }
+axum-login = { version = '0.17.0' }
+tower-sessions-redis-store = { version = '0.16.0' }
+password-auth = { version = '1.0.0' }
+tokio = { version = '1.45.0', features = ['full'] }
+diesel = { version = '2.2.10', features = ['postgres', 'r2d2', 'uuid'] }
+
+# Swagger generation
+utoipa = { version = "5.3.1", features = ['axum_extras', 'preserve_order', 'preserve_path_order'] }
+utoipa-axum = { version = '0.2.0' }
+utoipa-swagger-ui = { version = '9.0.1', features = ['axum'] }
+
+# Other dependencies
+dotenvy = { version = '0.15.7' }
+serde = { version = '1.0.219', features = ['derive'] }
+strum = { version = '0.27.1', features = ['derive'] }
