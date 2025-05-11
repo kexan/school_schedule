@@ -24,12 +24,12 @@ async fn main() -> Result<(), Error> {
     //TODO: SSL support
     let session_layer = SessionManagerLayer::new(session_store).with_secure(false);
 
-    let postgre_pool = db::establish_postgres_connection();
-    let connection = db::get_postgres_connection(&postgre_pool);
+    let postgres_pool = db::establish_postgres_connection();
+    let postgres_connection = db::get_postgres_connection(&postgres_pool);
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .layer(TraceLayer::new_for_http())
-        .with_state(postgre_pool)
+        .with_state(postgres_pool)
         .split_for_parts();
 
     let listener = TcpListener::bind("127.0.0.1:3000").await?;

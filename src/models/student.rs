@@ -1,7 +1,7 @@
 use chrono::NaiveDate;
 use diesel::{
     Selectable,
-    prelude::{Associations, Identifiable, Insertable, Queryable},
+    prelude::{AsChangeset, Associations, Identifiable, Insertable, Queryable},
 };
 use serde::{Deserialize, Serialize};
 
@@ -21,7 +21,7 @@ pub struct Student {
     pub student_group_id: Option<i32>,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[diesel(table_name = students)]
 pub struct NewStudent<'a> {
     pub name: &'a str,
