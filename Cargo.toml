@@ -11,7 +11,13 @@ axum-login = { version = '0.17.0' }
 tower-sessions-redis-store = { version = '0.16.0' }
 password-auth = { version = '1.0.0' }
 tokio = { version = '1.45.0', features = ['full'] }
+tower-http = { version = '0.6.4', features = ['trace'] }
 diesel = { version = '2.2.10', features = ['postgres', 'chrono', 'r2d2', 'uuid'] }
+
+# Logging
+log = { version = '0.4.27' }
+tracing = { version = '0.1.41' }
+tracing-subscriber = { version = '0.3.19', features = ['env-filter'] }
 
 # Swagger generation
 utoipa = { version = "5.3.1", features = ['axum_extras', 'preserve_order', 'preserve_path_order'] }
