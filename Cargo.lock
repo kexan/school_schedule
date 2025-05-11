@@ -1392,6 +1392,7 @@ dependencies = [
  "diesel",
  "dotenvy",
  "password-auth",
+ "r2d2",
  "serde",
  "strum",
  "tokio",

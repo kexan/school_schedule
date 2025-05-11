@@ -23,3 +23,4 @@ dotenvy = { version = '0.15.7' }
 serde = { version = '1.0.219', features = ['derive'] }
 strum = { version = '0.27.1', features = ['derive'] }
 chrono = { version = '0.4.41', features = ['serde']}
+r2d2 = { version = '0.8.10' }
