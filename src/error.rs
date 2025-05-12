@@ -1,29 +1,28 @@
-use axum::{Json, http::StatusCode};
-use serde::Serialize;
+use axum::http::StatusCode;
 use thiserror::Error;
 use tracing::error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
-    #[error("{0}")]
+    #[error("Bad request")]
     BadRequest(String),
 
-    #[error("{0}")]
+    #[error("Entity not found")]
     NotFound(String),
 
-    #[error("{0}")]
+    #[error("Internal server error")]
     InternalServerError(String),
 
-    #[error("{0}")]
+    #[error("Forbidden")]
     Forbidden(String),
 
-    #[error("{0}")]
+    #[error("Authentication required")]
     Unauthorized(String),
 
-    #[error("Database error: {0}")]
+    #[error("Database error")]
     Database(#[from] diesel::result::Error),
 
-    #[error("Connection pool error: {0}")]
+    #[error("Connection pool error")]
     Pool(#[from] r2d2::Error),
 }
 
@@ -73,17 +72,4 @@ impl AppError {
         }
     }
 }
-
-pub async fn handle_error(err: AppError) -> (StatusCode, Json<ErrorResponse>) {
-    let response = ErrorResponse {
-        code: err.status_code().as_u16(),
-        message: err.message(),
-    };
-    (err.status_code(), Json(response))
-}
-
-#[derive(Serialize)]
-pub struct ErrorResponse {
-    code: u16,
-    message: String,
-}
+//TODO: сделать как здесь https://github.com/launchbadge/realworld-axum-sqlx/blob/main/src/http/error.rs

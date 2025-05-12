@@ -1,6 +1,6 @@
 use diesel::{
     Selectable,
-    prelude::{Identifiable, Insertable, Queryable},
+    prelude::{AsChangeset, Identifiable, Insertable, Queryable},
 };
 use serde::{Deserialize, Serialize};
 
@@ -13,7 +13,7 @@ pub struct Parent {
     additional_info: Option<String>,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, AsChangeset)]
 #[diesel(table_name = parents)]
 pub struct NewParent<'a> {
     name: &'a str,
