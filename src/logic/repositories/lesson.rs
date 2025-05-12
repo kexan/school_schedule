@@ -1,7 +1,7 @@
 use diesel::{QueryDsl, QueryResult, RunQueryDsl};
 
 use crate::db::PostgresConnection;
-use crate::models::lesson::{Lesson, NewLesson};
+use crate::models::lesson::{Lesson, NewLesson, UpdateLesson};
 use crate::schema::lessons::dsl::lessons;
 
 pub struct LessonRepository;
@@ -23,10 +23,10 @@ impl LessonRepository {
     pub fn update(
         connection: &mut PostgresConnection,
         lesson_id: i32,
-        new_lesson: NewLesson,
+        updated_lesson: UpdateLesson,
     ) -> QueryResult<Lesson> {
         diesel::update(lessons.find(lesson_id))
-            .set(&new_lesson)
+            .set(&updated_lesson)
             .get_result(connection)
     }
 

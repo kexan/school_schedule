@@ -4,7 +4,7 @@ use crate::{
     db::{self, PostgresPool},
     error::AppError,
     logic::repositories::teacher::TeacherRepository,
-    models::teacher::{NewTeacher, Teacher},
+    models::teacher::{NewTeacher, Teacher, UpdateTeacher},
 };
 
 pub struct TeacherService;
@@ -30,10 +30,11 @@ impl TeacherService {
     pub fn update(
         postgres_pool: &PostgresPool,
         teacher_id: i32,
-        new_teacher: NewTeacher,
+        update_teacher: UpdateTeacher,
     ) -> Result<Teacher, AppError> {
         let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let updated_teacher = TeacherRepository::update(&mut connection, teacher_id, new_teacher)?;
+        let updated_teacher =
+            TeacherRepository::update(&mut connection, teacher_id, update_teacher)?;
         info!("Successfully updated teacher with ID {}", teacher_id);
         Ok(updated_teacher)
     }

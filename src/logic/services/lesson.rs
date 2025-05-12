@@ -4,7 +4,7 @@ use crate::{
     db::{self, PostgresPool},
     error::AppError,
     logic::repositories::lesson::LessonRepository,
-    models::lesson::{Lesson, NewLesson},
+    models::lesson::{Lesson, NewLesson, UpdateLesson},
 };
 
 pub struct LessonService;
@@ -27,10 +27,10 @@ impl LessonService {
     pub fn update(
         postgres_pool: &PostgresPool,
         lesson_id: i32,
-        new_lesson: NewLesson,
+        update_lesson: UpdateLesson,
     ) -> Result<Lesson, AppError> {
         let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let updated_lesson = LessonRepository::update(&mut connection, lesson_id, new_lesson)?;
+        let updated_lesson = LessonRepository::update(&mut connection, lesson_id, update_lesson)?;
         info!("Lesson with ID {} was successfully updated", lesson_id);
         Ok(updated_lesson)
     }
