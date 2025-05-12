@@ -15,7 +15,7 @@ pub struct Parent {
 
 #[derive(Insertable, AsChangeset)]
 #[diesel(table_name = parents)]
-pub struct NewParent<'a> {
-    name: &'a str,
-    additional_info: Option<&'a str>,
+pub struct NewParent {
+    name: String,
+    additional_info: Option<String>,
 }

@@ -1,4 +1,4 @@
-use axum::http::StatusCode;
+use axum::{http::StatusCode, response::IntoResponse};
 use thiserror::Error;
 use tracing::error;
 
@@ -70,6 +70,11 @@ impl AppError {
                 "Connection pool error occurred".to_string()
             }
         }
+    }
+}
+impl IntoResponse for AppError {
+    fn into_response(self) -> axum::response::Response {
+        (self.status_code(), axum::Json(self.message())).into_response()
     }
 }
 //TODO: сделать как здесь https://github.com/launchbadge/realworld-axum-sqlx/blob/main/src/http/error.rs

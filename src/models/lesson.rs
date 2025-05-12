@@ -18,8 +18,8 @@ pub struct Lesson {
 
 #[derive(Insertable, AsChangeset)]
 #[diesel(table_name = lessons)]
-pub struct NewLesson<'a> {
-    pub topic: &'a str,
+pub struct NewLesson {
+    pub topic: String,
     pub scheduled_at: NaiveDate,
     pub student_group_id: Option<i32>,
 }

@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 
 # Server, db, auth
-axum = { version = '0.8.4', features = ['multipart'] }
+axum = { version = '0.8.4', features = ['multipart', 'macros'] }
 axum-login = { version = '0.17.0' }
 tower-sessions-redis-store = { version = '0.16.0' }
 password-auth = { version = '1.0.0' }
@@ -21,7 +21,7 @@ tracing-subscriber = { version = '0.3.19', features = ['env-filter'] }
 thiserror = { version = '2.0.12' }
 
 # Swagger generation
-utoipa = { version = "5.3.1", features = ['axum_extras', 'preserve_order', 'preserve_path_order'] }
+utoipa = { version = "5.3.1", features = ['axum_extras', 'preserve_order', 'preserve_path_order', 'chrono'] }
 utoipa-axum = { version = '0.2.0' }
 utoipa-swagger-ui = { version = '9.0.1', features = ['axum'] }
 

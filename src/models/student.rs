@@ -4,6 +4,7 @@ use diesel::{
     prelude::{AsChangeset, Associations, Identifiable, Insertable, Queryable},
 };
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::{
     models::{parent::Parent, student_group::StudentGroup},
@@ -21,10 +22,10 @@ pub struct Student {
     pub student_group_id: Option<i32>,
 }
 
-#[derive(Insertable, AsChangeset)]
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = students)]
-pub struct NewStudent<'a> {
-    pub name: &'a str,
+pub struct NewStudent {
+    pub name: String,
     pub birth_date: NaiveDate,
     pub parent_id: Option<i32>,
     pub student_group_id: Option<i32>,

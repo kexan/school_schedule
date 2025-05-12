@@ -13,6 +13,6 @@ pub struct Teacher {
 
 #[derive(Insertable, AsChangeset)]
 #[diesel(table_name = teachers)]
-pub struct NewTeacher<'a> {
-    pub name: &'a str,
+pub struct NewTeacher {
+    pub name: String,
 }
