@@ -1,6 +1,6 @@
 use axum_login::tower_sessions::SessionManagerLayer;
 use dotenvy::dotenv;
-use school_schedule::{db, error::handle_error, open_api::ApiDoc};
+use school_schedule::{db, open_api::ApiDoc};
 use std::io::Error;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
