@@ -1442,6 +1442,7 @@ dependencies = [
  "r2d2",
  "serde",
  "strum",
+ "thiserror",
  "tokio",
  "tower-http",
  "tower-sessions-redis-store",

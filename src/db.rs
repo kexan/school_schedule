@@ -5,13 +5,13 @@ use tower_sessions_redis_store::fred::prelude::{
     Config, ConnectionConfig, PerformanceConfig, ReconnectPolicy,
 };
 
-pub type PostgrePool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<PgConnection>>;
-pub type PostgreConnection =
+pub type PostgresPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<PgConnection>>;
+pub type PostgresConnection =
     diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>;
 pub type DieselError = r2d2::Error;
 pub type RedisPool = tower_sessions_redis_store::fred::prelude::Pool;
 
-pub fn establish_postgres_connection() -> PostgrePool {
+pub fn establish_postgres_connection() -> PostgresPool {
     let postgres_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let connection_manager = diesel::r2d2::ConnectionManager::<PgConnection>::new(postgres_url);
     diesel::r2d2::Pool::builder()
@@ -31,6 +31,6 @@ pub async fn establish_redis_connection() -> RedisPool {
     .expect("Failed to create Redis pool")
 }
 
-pub fn get_postgres_connection(pool: &PostgrePool) -> Result<PostgreConnection, DieselError> {
+pub fn get_postgres_connection(pool: &PostgresPool) -> Result<PostgresConnection, DieselError> {
     pool.get()
 }
