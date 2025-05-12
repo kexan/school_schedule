@@ -1,10 +1,7 @@
-use diesel::{ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{PgConnection, QueryDsl, QueryResult, RunQueryDsl};
 
+use crate::models::lesson::{Lesson, NewLesson};
 use crate::schema::lessons::dsl::lessons;
-use crate::{
-    models::lesson::{Lesson, NewLesson},
-    schema::lessons::id,
-};
 
 pub struct LessonRepository;
 
@@ -24,12 +21,12 @@ impl LessonRepository {
         lesson_id: i32,
         new_lesson: NewLesson,
     ) -> QueryResult<Lesson> {
-        diesel::update(lessons.filter(id.eq(lesson_id)))
+        diesel::update(lessons.find(lesson_id))
             .set(&new_lesson)
             .get_result(connection)
     }
 
     pub fn delete(connection: &mut PgConnection, lesson_id: i32) -> QueryResult<usize> {
-        diesel::delete(lessons.filter(id.eq(lesson_id))).execute(connection)
+        diesel::delete(lessons.find(lesson_id)).execute(connection)
     }
 }
