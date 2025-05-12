@@ -7,9 +7,9 @@ use crate::{
     models::lesson::{Lesson, NewLesson},
 };
 
-pub struct StudentService;
+pub struct LessonService;
 
-impl StudentService {
+impl LessonService {
     pub fn create(postgres_pool: &PostgresPool, new_lesson: NewLesson) -> Result<Lesson, AppError> {
         let mut connection = db::get_postgres_connection(postgres_pool)?;
         let lesson = LessonRepository::create(&mut connection, new_lesson)?;

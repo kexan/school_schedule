@@ -1,6 +1,6 @@
 use axum_login::tower_sessions::SessionManagerLayer;
 use dotenvy::dotenv;
-use school_schedule::{db, open_api::ApiDoc};
+use school_schedule::{db, handlers, open_api::ApiDoc};
 use std::io::Error;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -9,6 +9,7 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 use utoipa::OpenApi;
 use utoipa_axum::router::OpenApiRouter;
+use utoipa_swagger_ui::SwaggerUi;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -25,12 +26,14 @@ async fn main() -> Result<(), Error> {
     let session_layer = SessionManagerLayer::new(session_store).with_secure(false);
 
     let postgres_pool = db::establish_postgres_connection();
-    let postgres_connection = db::get_postgres_connection(&postgres_pool);
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .nest("/api/v1/students", handlers::student::router())
         .layer(TraceLayer::new_for_http())
         .with_state(postgres_pool)
         .split_for_parts();
+
+    let router = router.merge(SwaggerUi::new("/swagger").url("/apidoc/openapi.json", open_api));
 
     let listener = TcpListener::bind("127.0.0.1:3000").await?;
     info!("Server started on {}", listener.local_addr()?);

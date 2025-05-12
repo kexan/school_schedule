@@ -1,4 +1,8 @@
-use axum::{http::StatusCode, response::IntoResponse};
+use axum::{
+    Json,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+};
 use thiserror::Error;
 use tracing::error;
 
@@ -73,8 +77,8 @@ impl AppError {
     }
 }
 impl IntoResponse for AppError {
-    fn into_response(self) -> axum::response::Response {
-        (self.status_code(), axum::Json(self.message())).into_response()
+    fn into_response(self) -> Response {
+        (self.status_code(), Json(self.message())).into_response()
     }
 }
 //TODO: сделать как здесь https://github.com/launchbadge/realworld-axum-sqlx/blob/main/src/http/error.rs
