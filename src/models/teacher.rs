@@ -12,13 +12,13 @@ pub struct Teacher {
     pub name: String,
 }
 
-#[derive(Insertable, AsChangeset, ToSchema)]
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = teachers)]
 pub struct NewTeacher {
     pub name: String,
 }
 
-#[derive(Insertable, AsChangeset, ToSchema)]
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = teachers)]
 pub struct UpdateTeacher {
     pub name: Option<String>,
