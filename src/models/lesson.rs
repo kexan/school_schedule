@@ -17,7 +17,7 @@ pub struct Lesson {
     pub student_group_id: Option<i32>,
 }
 
-#[derive(Insertable, AsChangeset, ToSchema)]
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = lessons)]
 pub struct NewLesson {
     pub topic: String,
@@ -25,7 +25,7 @@ pub struct NewLesson {
     pub student_group_id: Option<i32>,
 }
 
-#[derive(Insertable, AsChangeset, ToSchema)]
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = lessons)]
 pub struct UpdateLesson {
     pub topic: Option<String>,

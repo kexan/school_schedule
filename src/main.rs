@@ -30,6 +30,7 @@ async fn main() -> Result<(), Error> {
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/api/v1/students", handlers::student::router())
         .nest("/api/v1/teachers", handlers::teacher::router())
+        .nest("/api/v1/lessons", handlers::lesson::router())
         .layer(TraceLayer::new_for_http())
         .with_state(postgres_pool)
         .split_for_parts();

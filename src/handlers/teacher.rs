@@ -24,7 +24,6 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
 }
 
 #[utoipa::path(post, path = "/", request_body = NewTeacher)]
-#[axum::debug_handler]
 async fn create_teacher(
     State(postgres_pool): State<PostgresPool>,
     Json(new_teacher): Json<NewTeacher>,
