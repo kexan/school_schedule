@@ -11,7 +11,7 @@ use crate::{
     schema::students,
 };
 
-#[derive(Serialize, Deserialize, Queryable, Selectable, Identifiable, Associations)]
+#[derive(Serialize, Deserialize, Queryable, Selectable, Identifiable, Associations, ToSchema)]
 #[diesel(belongs_to(Parent))]
 #[diesel(belongs_to(StudentGroup))]
 pub struct Student {
