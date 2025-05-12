@@ -9,10 +9,11 @@ use crate::{
     db::PostgresPool,
     error::AppError,
     logic::services::student::StudentService,
-    models::student::{NewStudent, Student},
+    models::student::{NewStudent, Student, UpdateStudent},
 };
 
 pub fn router() -> OpenApiRouter<PostgresPool> {
+    //TODO: добавить пермишены
     let dont_need_permissions = OpenApiRouter::new().routes(routes!(
         create_student,
         get_student,
@@ -42,14 +43,14 @@ async fn get_student(
     Ok(Json(student))
 }
 
-#[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется обновить")), request_body = NewStudent)]
+#[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется обновить")), request_body = UpdateStudent)]
 async fn update_student(
     State(postgres_pool): State<PostgresPool>,
     Path(student_id): Path<i32>,
-    Json(new_student): Json<NewStudent>,
+    Json(update_student): Json<UpdateStudent>,
 ) -> Result<Json<Student>, AppError> {
     info!("Updating student");
-    let updated_student = StudentService::update(&postgres_pool, student_id, new_student)?;
+    let updated_student = StudentService::update(&postgres_pool, student_id, update_student)?;
     Ok(Json(updated_student))
 }
 

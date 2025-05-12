@@ -1,5 +1,5 @@
 use crate::db::PostgresConnection;
-use crate::models::student::{NewStudent, Student};
+use crate::models::student::{NewStudent, Student, UpdateStudent};
 use crate::schema::students::dsl::students;
 use diesel::{QueryDsl, QueryResult, RunQueryDsl};
 
@@ -22,10 +22,10 @@ impl StudentRepository {
     pub fn update(
         connection: &mut PostgresConnection,
         student_id: i32,
-        new_student: NewStudent,
+        update_student: UpdateStudent,
     ) -> QueryResult<Student> {
         diesel::update(students.find(student_id))
-            .set(&new_student)
+            .set(&update_student)
             .get_result(connection)
     }
 

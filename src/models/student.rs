@@ -30,3 +30,12 @@ pub struct NewStudent {
     pub parent_id: Option<i32>,
     pub student_group_id: Option<i32>,
 }
+
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
+#[diesel(table_name = students)]
+pub struct UpdateStudent {
+    pub name: Option<String>,
+    pub birth_date: Option<NaiveDate>,
+    pub parent_id: Option<i32>,
+    pub student_group_id: Option<i32>,
+}
