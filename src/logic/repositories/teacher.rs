@@ -1,22 +1,26 @@
+use crate::db::PostgresConnection;
 use crate::models::teacher::{NewTeacher, Teacher};
 use crate::schema::teachers::dsl::teachers;
-use diesel::{ExpressionMethods, PgConnection, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{QueryDsl, QueryResult, RunQueryDsl};
 
 pub struct TeacherRepository;
 
 impl TeacherRepository {
-    pub fn create(connection: &mut PgConnection, new_teacher: NewTeacher) -> QueryResult<Teacher> {
+    pub fn create(
+        connection: &mut PostgresConnection,
+        new_teacher: NewTeacher,
+    ) -> QueryResult<Teacher> {
         diesel::insert_into(teachers)
             .values(new_teacher)
             .get_result(connection)
     }
 
-    pub fn get(connection: &mut PgConnection, teacher_id: i32) -> QueryResult<Teacher> {
+    pub fn get(connection: &mut PostgresConnection, teacher_id: i32) -> QueryResult<Teacher> {
         teachers.find(teacher_id).first(connection)
     }
 
     pub fn update(
-        connection: &mut PgConnection,
+        connection: &mut PostgresConnection,
         teacher_id: i32,
         new_teacher: NewTeacher,
     ) -> QueryResult<Teacher> {
@@ -25,7 +29,7 @@ impl TeacherRepository {
             .get_result(connection)
     }
 
-    pub fn delete(connection: &mut PgConnection, teacher_id: i32) -> QueryResult<usize> {
+    pub fn delete(connection: &mut PostgresConnection, teacher_id: i32) -> QueryResult<usize> {
         diesel::delete(teachers.find(teacher_id)).execute(connection)
     }
 }

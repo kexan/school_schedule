@@ -1,22 +1,26 @@
+use crate::db::PostgresConnection;
 use crate::models::student::{NewStudent, Student};
 use crate::schema::students::dsl::students;
-use diesel::{PgConnection, QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{QueryDsl, QueryResult, RunQueryDsl};
 
 pub struct StudentRepository;
 
 impl StudentRepository {
-    pub fn create(connection: &mut PgConnection, new_student: NewStudent) -> QueryResult<Student> {
+    pub fn create(
+        connection: &mut PostgresConnection,
+        new_student: NewStudent,
+    ) -> QueryResult<Student> {
         diesel::insert_into(students)
             .values(new_student)
             .get_result(connection)
     }
 
-    pub fn get(connection: &mut PgConnection, student_id: i32) -> QueryResult<Student> {
+    pub fn get(connection: &mut PostgresConnection, student_id: i32) -> QueryResult<Student> {
         students.find(student_id).first(connection)
     }
 
     pub fn update(
-        connection: &mut PgConnection,
+        connection: &mut PostgresConnection,
         student_id: i32,
         new_student: NewStudent,
     ) -> QueryResult<Student> {
@@ -25,7 +29,7 @@ impl StudentRepository {
             .get_result(connection)
     }
 
-    pub fn delete(connection: &mut PgConnection, student_id: i32) -> QueryResult<usize> {
+    pub fn delete(connection: &mut PostgresConnection, student_id: i32) -> QueryResult<usize> {
         diesel::delete(students.find(student_id)).execute(connection)
     }
 }
