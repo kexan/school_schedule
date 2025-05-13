@@ -3,7 +3,7 @@ use tracing::{info, warn};
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::parent::ParentRepository,
+    logic::repositories::parent_repository::ParentRepository,
     models::parent::{NewParent, Parent, UpdateParent},
 };
 

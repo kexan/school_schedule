@@ -8,7 +8,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     db::PostgresPool,
     error::AppError,
-    logic::services::parent::ParentService,
+    logic::services::parent_service::ParentService,
     models::parent::{NewParent, Parent, UpdateParent},
 };
 

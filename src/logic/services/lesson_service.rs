@@ -3,7 +3,7 @@ use tracing::{info, warn};
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::lesson::LessonRepository,
+    logic::repositories::lesson_repository::LessonRepository,
     models::lesson::{Lesson, NewLesson, UpdateLesson},
 };
 

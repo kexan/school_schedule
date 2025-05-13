@@ -1,5 +1,5 @@
-pub(super) mod lesson;
-pub(super) mod parent;
-pub(super) mod student;
-pub(super) mod student_group;
-pub(super) mod teacher;
+pub(super) mod lesson_repository;
+pub(super) mod parent_repository;
+pub(super) mod student_group_repository;
+pub(super) mod student_repository;
+pub(super) mod teacher_repository;

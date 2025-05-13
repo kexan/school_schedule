@@ -28,10 +28,10 @@ async fn main() -> Result<(), Error> {
     let postgres_pool = db::establish_postgres_connection();
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
-        .nest("/api/v1/students", handlers::student::router())
-        .nest("/api/v1/parents", handlers::parent::router())
-        .nest("/api/v1/teachers", handlers::teacher::router())
-        .nest("/api/v1/lessons", handlers::lesson::router())
+        .nest("/api/v1/students", handlers::student_handler::router())
+        .nest("/api/v1/parents", handlers::parent_handler::router())
+        .nest("/api/v1/teachers", handlers::teacher_handler::router())
+        .nest("/api/v1/lessons", handlers::lesson_handler::router())
         .layer(TraceLayer::new_for_http())
         .with_state(postgres_pool)
         .split_for_parts();

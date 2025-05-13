@@ -8,7 +8,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     db::PostgresPool,
     error::AppError,
-    logic::services::student::StudentService,
+    logic::services::student_service::StudentService,
     models::student::{NewStudent, Student, UpdateStudent},
 };
 
