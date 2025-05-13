@@ -76,13 +76,4 @@ diesel::joinable!(student_groups -> teachers (teacher_id));
 diesel::joinable!(students -> parents (parent_id));
 diesel::joinable!(students -> student_groups (student_group_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    images,
-    lessons,
-    parents,
-    student_groups,
-    students,
-    teachers,
-    users,
-    vns,
-);
+diesel::allow_tables_to_appear_in_same_query!(lessons, parents, student_groups, students, teachers,);
