@@ -27,9 +27,9 @@ diesel::table! {
 diesel::table! {
     student_groups (id) {
         id -> Int4,
-        direction -> Varchar,
+        direction -> Nullable<Varchar>,
         free_spots -> Int4,
-        teacher_id -> Int4,
+        teacher_id -> Nullable<Int4>,
     }
 }
 

@@ -1,8 +1,9 @@
 use diesel::{
     Selectable,
-    prelude::{Associations, Identifiable, Queryable},
+    prelude::{AsChangeset, Associations, Identifiable, Insertable, Queryable},
 };
 use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 use crate::models::teacher::Teacher;
 use crate::schema::student_groups;
@@ -13,5 +14,21 @@ pub struct StudentGroup {
     pub id: i32,
     pub direction: String,
     pub free_spots: i32,
-    pub teacher_id: i32,
+    pub teacher_id: Option<i32>,
+}
+
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
+#[diesel(table_name = student_groups)]
+pub struct NewStudentGroup {
+    pub direction: String,
+    pub free_spots: i32,
+    pub teacher_id: Option<i32>,
+}
+
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
+#[diesel(table_name = student_groups)]
+pub struct UpdateStudentGroup {
+    pub direction: Option<String>,
+    pub free_spots: Option<i32>,
+    pub teacher_id: Option<i32>,
 }

@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS parents (
 
 CREATE TABLE IF NOT EXISTS student_groups (
     id SERIAL PRIMARY KEY,
-    direction VARCHAR NOT NULL,
+    direction VARCHAR,
     free_spots INTEGER NOT NULL,
-    teacher_id INTEGER NOT NULL REFERENCES teachers (id) ON DELETE RESTRICT
+    teacher_id INTEGER REFERENCES teachers (id) ON DELETE SET NULL
 );
 
 CREATE TABLE IF NOT EXISTS students (
