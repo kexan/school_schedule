@@ -1,6 +1,15 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    documents (id) {
+        id -> Uuid,
+        name -> Varchar,
+        uploaded_at -> Time,
+        teacher_id -> Int4,
+    }
+}
+
+diesel::table! {
     images (id) {
         id -> Uuid,
         image_url -> Text,
@@ -71,9 +80,20 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(documents -> teachers (teacher_id));
 diesel::joinable!(lessons -> student_groups (student_group_id));
 diesel::joinable!(student_groups -> teachers (teacher_id));
 diesel::joinable!(students -> parents (parent_id));
 diesel::joinable!(students -> student_groups (student_group_id));
 
-diesel::allow_tables_to_appear_in_same_query!(lessons, parents, student_groups, students, teachers,);
+diesel::allow_tables_to_appear_in_same_query!(
+    documents,
+    images,
+    lessons,
+    parents,
+    student_groups,
+    students,
+    teachers,
+    users,
+    vns,
+);

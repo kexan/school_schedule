@@ -1,3 +1,4 @@
+pub mod document;
 pub mod lesson;
 pub mod parent;
 pub mod student;
