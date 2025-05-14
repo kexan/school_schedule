@@ -1,4 +1,5 @@
 use chrono::NaiveDateTime;
+use diesel::{AsChangeset, Insertable};
 use diesel::{Identifiable, Queryable, Selectable, prelude::Associations};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -13,5 +14,12 @@ pub struct Document {
     id: Uuid,
     name: String,
     uploaded_at: NaiveDateTime,
+    teacher_id: i32,
+}
+
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
+#[diesel(table_name = documents)]
+pub struct NewDocument {
+    name: String,
     teacher_id: i32,
 }

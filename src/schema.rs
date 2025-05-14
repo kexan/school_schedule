@@ -4,7 +4,7 @@ diesel::table! {
     documents (id) {
         id -> Uuid,
         name -> Varchar,
-        uploaded_at -> Time,
+        uploaded_at -> Timestamp,
         teacher_id -> Int4,
     }
 }
