@@ -28,27 +28,35 @@ impl DocumentService {
                         "Unsupported file type. Only png/jpeg/webp allowed.".to_string(),
                     ));
                 }
-                let data = field.bytes().await?.as_ref();
-                let file_extension = content_type.split('/').last().ok_or(AppError::BadRequest(
-                    "Failed to determine file extension".to_string(),
-                ))?;
+
                 let file_name = field
                     .file_name()
                     .ok_or(AppError::BadRequest(
                         "Failed to determine file_name".to_string(),
                     ))?
                     .to_string();
+
+                let file_extension =
+                    content_type
+                        .split('/')
+                        .next_back()
+                        .ok_or(AppError::BadRequest(
+                            "Failed to determine file extension".to_string(),
+                        ))?;
+
                 let new_document = NewDocument {
                     name: file_name,
-                    //TODO: прокидывать тичер айди и проверять
-                    teacher_id: 1,
+                    teacher_id: 1, // TODO: передать teacher_id из запроса
                 };
                 let mut connection = db::get_postgres_connection(&postgres_pool)?;
                 let database_entry = DocumentRepository::create(&mut connection, new_document)?;
+
                 let file_name = format!("{}.{}", database_entry.id, file_extension);
                 let file_path = Path::new("/storage/").join(file_name);
                 let mut file = File::create(file_path)?;
-                file.write_all(data)?;
+                let data = field.bytes().await?.to_vec();
+                file.write_all(&data)?;
+
                 return Ok(database_entry);
             }
         }
