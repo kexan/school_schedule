@@ -28,6 +28,12 @@ pub enum AppError {
 
     #[error("Connection pool error")]
     Pool(#[from] r2d2::Error),
+
+    #[error("Multipart parsing error")]
+    Multipart(#[from] axum::extract::multipart::MultipartError),
+
+    #[error("I/O error")]
+    IO(#[from] std::io::Error),
 }
 
 impl AppError {
@@ -40,6 +46,8 @@ impl AppError {
             AppError::Unauthorized(_) => StatusCode::UNAUTHORIZED,
             AppError::Database(_) => StatusCode::INTERNAL_SERVER_ERROR,
             AppError::Pool(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::Multipart(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            AppError::IO(_) => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
 
@@ -72,6 +80,14 @@ impl AppError {
             AppError::Pool(e) => {
                 error!("Connection pool error: {}", e);
                 "Connection pool error occurred".to_string()
+            }
+            AppError::Multipart(e) => {
+                error!("Multipart error occurred: {}", e);
+                "Multipart error occurred".to_string()
+            }
+            AppError::IO(e) => {
+                error!("I/O error occurred: {}", e);
+                "I/O error occurred".to_string()
             }
         }
     }

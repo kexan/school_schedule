@@ -11,15 +11,15 @@ use crate::schema::documents;
 #[derive(Serialize, Deserialize, Queryable, Selectable, Identifiable, Associations, ToSchema)]
 #[diesel(belongs_to(Teacher))]
 pub struct Document {
-    id: Uuid,
-    name: String,
-    uploaded_at: NaiveDateTime,
-    teacher_id: i32,
+    pub id: Uuid,
+    pub name: String,
+    pub uploaded_at: NaiveDateTime,
+    pub teacher_id: i32,
 }
 
 #[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = documents)]
 pub struct NewDocument {
-    name: String,
-    teacher_id: i32,
+    pub name: String,
+    pub teacher_id: i32,
 }
