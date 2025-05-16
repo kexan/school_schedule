@@ -1,6 +1,6 @@
 use axum::{
     Json,
-    extract::{Path, State},
+    extract::{Multipart, Path, State},
 };
 use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
@@ -8,18 +8,23 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     db::PostgresPool,
     error::AppError,
-    logic::services::teacher_service::TeacherService,
-    models::teacher::{NewTeacher, Teacher, UpdateTeacher},
+    logic::services::{document_service::DocumentService, teacher_service::TeacherService},
+    models::{
+        document::{Document, DocumentFileForm},
+        teacher::{NewTeacher, Teacher, UpdateTeacher},
+    },
 };
 
 pub fn router() -> OpenApiRouter<PostgresPool> {
     //TODO: добавить пермишены
-    let dont_need_permissions = OpenApiRouter::new().routes(routes!(
-        create_teacher,
-        get_teacher,
-        update_teacher,
-        delete_teacher
-    ));
+    let dont_need_permissions = OpenApiRouter::new()
+        .routes(routes!(
+            create_teacher,
+            get_teacher,
+            update_teacher,
+            delete_teacher
+        ))
+        .routes(routes!(upload_document));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -31,6 +36,21 @@ async fn create_teacher(
     info!("Creating new student");
     let new_teacher = TeacherService::create(&postgres_pool, new_teacher)?;
     Ok(Json(new_teacher))
+}
+
+#[utoipa::path(post,
+    path = "/{id}/upload_document", 
+    params(("id" = i32, Path, description = "ID учителя к которому загружаем документ")),
+    request_body(content_type = "multipart/form-data", content = DocumentFileForm, description = "Загружаемый документ")
+)]
+async fn upload_document(
+    State(postgres_pool): State<PostgresPool>,
+    Path(teacher_id): Path<i32>,
+    multipart: Multipart,
+) -> Result<Json<Document>, AppError> {
+    info!("Uploading document to teacher");
+    let document = DocumentService::create(&postgres_pool, multipart, teacher_id).await?;
+    Ok(Json(document))
 }
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого учителя")))]

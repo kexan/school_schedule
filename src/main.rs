@@ -42,7 +42,7 @@ async fn main() -> Result<(), Error> {
 
     let router = router.merge(SwaggerUi::new("/swagger").url("/apidoc/openapi.json", open_api));
 
-    let listener = TcpListener::bind("0.0.0.0:3000").await?;
+    let listener = TcpListener::bind("0.0.0.0:1234").await?;
     info!("Server started on {}", listener.local_addr()?);
     axum::serve(listener, router).await
 }
