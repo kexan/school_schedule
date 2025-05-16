@@ -24,7 +24,7 @@ pub struct NewDocument {
     pub teacher_id: i32,
 }
 
-// Структруа для сваггера
+// Структура для сваггера
 #[derive(Deserialize, ToSchema)]
 pub struct DocumentFileForm {
     #[schema(format = Binary, content_media_type = "application/octet-stream")]
