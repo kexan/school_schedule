@@ -1,6 +1,8 @@
 use std::{fs::File, io::Write, path::Path};
 
 use axum::extract::Multipart;
+use tracing::info;
+use uuid::Uuid;
 
 use crate::{
     db::{self, PostgresPool},
@@ -57,9 +59,30 @@ impl DocumentService {
                 let data = field.bytes().await?.to_vec();
                 file.write_all(&data)?;
 
+                info!("Successfully saved document");
                 return Ok(database_entry);
             }
         }
         Err(AppError::BadRequest("No file uploaded".to_string()))
+    }
+
+    pub fn get(postgres_pool: PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
+        let mut connection = db::get_postgres_connection(&postgres_pool)?;
+        let document = DocumentRepository::get(&mut connection, document_id)?;
+        info!("Document with ID {} successfully get", document_id);
+        Ok(document)
+    }
+
+    pub fn delete(postgres_pool: PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
+        let mut connection = db::get_postgres_connection(&postgres_pool)?;
+        let deleted_count = DocumentRepository::delete(&mut connection, document_id)?;
+
+        if deleted_count > 0 {
+            info!("Document with ID {} successfully deleted", document_id);
+            Ok(true)
+        } else {
+            info!("Document with ID {} not found", document_id);
+            Ok(false)
+        }
     }
 }
