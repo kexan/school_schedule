@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use axum::{extract::Multipart, routing::post};
+use axum::extract::Multipart;
 use tracing::info;
 use uuid::Uuid;
 

@@ -44,7 +44,7 @@ async fn create_teacher(
 }
 
 #[utoipa::path(post,
-    path = "/{id}/upload_document", 
+    path = "/{id}/documents", 
     params(("id" = i32, Path, description = "ID учителя к которому загружаем документ")),
     request_body(content_type = "multipart/form-data", content = DocumentFileForm, description = "Загружаемый документ")
 )]
@@ -105,9 +105,9 @@ async fn delete_teacher(
 
 #[utoipa::path(
     delete,
-    path = "/{teacher_id}/documents/{document_id}",
+    path = "/{id}/documents/{document_id}",
     params(
-        ("teacher_id" = i32, Path, description = "ID учителя к которому загружаем документ"),
+        ("id" = i32, Path, description = "ID учителя к которому загружаем документ"),
         ("document_id" = Uuid, Path, description = "ID документа который нужно удалить")
     ),
     responses(
@@ -116,11 +116,11 @@ async fn delete_teacher(
 )]
 async fn delete_document(
     State(postgres_pool): State<PostgresPool>,
-    Path((teacher_id, document_id)): Path<(i32, Uuid)>,
+    Path((id, document_id)): Path<(i32, Uuid)>,
 ) -> Result<Json<String>, AppError> {
     info!(
         "Deleting document {} from teacher with ID {}",
-        document_id, teacher_id
+        document_id, id
     );
     let delete_count = DocumentService::delete(&postgres_pool, document_id)?;
     if delete_count {
