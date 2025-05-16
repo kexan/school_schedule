@@ -1,10 +1,10 @@
-use diesel::{QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::{
     db::PostgresConnection,
     models::document::{Document, NewDocument},
-    schema::documents::dsl::documents,
+    schema::documents::{dsl::documents, teacher_id},
 };
 
 pub struct DocumentRepository;
@@ -21,6 +21,13 @@ impl DocumentRepository {
 
     pub fn get(connection: &mut PostgresConnection, document_id: Uuid) -> QueryResult<Document> {
         documents.find(document_id).first(connection)
+    }
+
+    pub fn get_all_for_teacher(
+        connection: &mut PostgresConnection,
+        id: i32,
+    ) -> QueryResult<Vec<Document>> {
+        documents.filter(teacher_id.eq(id)).load(connection)
     }
 
     pub fn delete(connection: &mut PostgresConnection, document_id: Uuid) -> QueryResult<usize> {

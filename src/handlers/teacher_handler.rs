@@ -25,7 +25,11 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
             update_teacher,
             delete_teacher
         ))
-        .routes(routes!(upload_document, delete_document));
+        .routes(routes!(
+            get_teacher_documents,
+            upload_document,
+            delete_document
+        ));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -64,6 +68,16 @@ async fn get_teacher(
     Ok(Json(teacher))
 }
 
+#[utoipa::path(get, path = "/{id}/documents", params(("id" = i32, Path, description = "ID учителя у которого запрашиваются документы")))]
+async fn get_teacher_documents(
+    State(postgres_pool): State<PostgresPool>,
+    Path(teacher_id): Path<i32>,
+) -> Result<Json<Vec<Document>>, AppError> {
+    info!("Getting all teacher documents");
+    let documents = DocumentService::get_all_for_teacher(&postgres_pool, teacher_id)?;
+    Ok(Json(documents))
+}
+
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Учителя которого требуется обновить")), request_body = UpdateTeacher)]
 async fn update_teacher(
     State(postgres_pool): State<PostgresPool>,
@@ -91,7 +105,7 @@ async fn delete_teacher(
 
 #[utoipa::path(
     delete,
-    path = "/{teacher_id}/document/{document_id}",
+    path = "/{teacher_id}/documents/{document_id}",
     params(
         ("teacher_id" = i32, Path, description = "ID учителя к которому загружаем документ"),
         ("document_id" = Uuid, Path, description = "ID документа который нужно удалить")

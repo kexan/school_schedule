@@ -4,7 +4,7 @@ use std::{
     path::Path,
 };
 
-use axum::extract::Multipart;
+use axum::{extract::Multipart, routing::post};
 use tracing::info;
 use uuid::Uuid;
 
@@ -83,6 +83,16 @@ impl DocumentService {
         let document = DocumentRepository::get(&mut connection, document_id)?;
         info!("Document with ID {} successfully get", document_id);
         Ok(document)
+    }
+
+    pub fn get_all_for_teacher(
+        postgres_pool: &PostgresPool,
+        teacher_id: i32,
+    ) -> Result<Vec<Document>, AppError> {
+        let mut connection = db::get_postgres_connection(postgres_pool)?;
+        let documents = DocumentRepository::get_all_for_teacher(&mut connection, teacher_id)?;
+        info!("Got all documents for teacher with ID {}", teacher_id);
+        Ok(documents)
     }
 
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
