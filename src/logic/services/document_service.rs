@@ -56,17 +56,33 @@ impl DocumentService {
             let file_name = format!("{}.{}", database_entry.id, file_extension);
             let dir_path = format!("./storage/teachers/{}/", database_entry.teacher_id);
             let storage_dir = Path::new(&dir_path);
-            std::fs::create_dir_all(storage_dir)?;
+
+            if let Err(e) = std::fs::create_dir_all(storage_dir) {
+                DocumentService::delete(postgres_pool, database_entry.id)?;
+                return Err(AppError::InternalServerError(e.to_string()));
+            }
 
             let file_path = storage_dir.join(file_name);
-            let mut file = File::create(file_path)?;
-            let data = field.bytes().await?.to_vec();
-            file.write_all(&data)?;
+            let mut file = match File::create(&file_path) {
+                Ok(f) => f,
+                Err(e) => {
+                    DocumentService::delete(postgres_pool, database_entry.id)?;
+                    return Err(AppError::InternalServerError(e.to_string()));
+                }
+            };
+
+            let data = field.bytes().await?;
+            let data_vec = data.to_vec();
+            if let Err(e) = file.write_all(&data_vec) {
+                DocumentService::delete(postgres_pool, database_entry.id)?;
+                return Err(AppError::InternalServerError(e.to_string()));
+            }
 
             info!("Successfully saved document");
-            return Ok(database_entry);
+            Ok(database_entry)
+        } else {
+            Err(AppError::BadRequest("No file uploaded".to_string()))
         }
-        Err(AppError::BadRequest("No file uploaded".to_string()))
     }
 
     pub fn get(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
@@ -77,8 +93,7 @@ impl DocumentService {
     }
 
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let document = DocumentRepository::get(&mut connection, document_id)?;
+        let document = DocumentService::get(postgres_pool, document_id)?;
 
         let file_name = document.name;
         let teacher_id = document.teacher_id;
@@ -90,6 +105,7 @@ impl DocumentService {
             fs::remove_file(&full_path)?;
             info!("File at {} successfully deleted", full_path.display());
 
+            let mut connection = db::get_postgres_connection(postgres_pool)?;
             let deleted_count = DocumentRepository::delete(&mut connection, document_id)?;
 
             if deleted_count > 0 {
