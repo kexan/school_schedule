@@ -46,14 +46,7 @@ impl DocumentService {
             let mut connection = db::get_postgres_connection(postgres_pool)?;
             let database_entry = DocumentRepository::create(&mut connection, new_document)?;
 
-            let file_extension =
-                content_type
-                    .split('/')
-                    .next_back()
-                    .ok_or(AppError::BadRequest(
-                        "Failed to determine file extension".to_string(),
-                    ))?;
-            let file_name = format!("{}.{}", database_entry.id, file_extension);
+            let file_name = format!("{}.{}", database_entry.id, database_entry.file_extension()?);
             let dir_path = format!("./storage/teachers/{}/", database_entry.teacher_id);
             let storage_dir = Path::new(&dir_path);
 
@@ -95,14 +88,7 @@ impl DocumentService {
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
         let document = DocumentService::get(postgres_pool, document_id)?;
 
-        let file_extension =
-            document
-                .name
-                .split('.')
-                .next_back()
-                .ok_or(AppError::InternalServerError(
-                    "Could not get document name".to_string(),
-                ))?;
+        let file_extension = document.file_extension()?;
         let teacher_id = document.teacher_id;
 
         let dir_path = format!("./storage/teachers/{}/", teacher_id);
