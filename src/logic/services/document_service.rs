@@ -50,7 +50,10 @@ impl DocumentService {
                         "Failed to determine file extension".to_string(),
                     ))?;
             let file_name = format!("{}.{}", database_entry.id, file_extension);
-            let file_path = Path::new("/storage/").join(file_name);
+            let storage_dir = Path::new("./storage");
+            std::fs::create_dir_all(storage_dir)?;
+
+            let file_path = storage_dir.join(file_name);
             let mut file = File::create(file_path)?;
             let data = field.bytes().await?.to_vec();
             file.write_all(&data)?;
