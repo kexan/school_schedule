@@ -24,10 +24,10 @@ impl DocumentService {
                 .content_type()
                 .ok_or(AppError::BadRequest("Content type is missing".to_string()))?
                 .to_string();
-            let allowed_types = ["image/png", "image/jpeg", "image/webp"];
+            let allowed_types = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
             if !allowed_types.contains(&content_type.as_str()) {
                 return Err(AppError::BadRequest(
-                    "Unsupported file type. Only png/jpeg/webp allowed.".to_string(),
+                    "Unsupported file type. Only png/jpeg/webp/pdf allowed.".to_string(),
                 ));
             }
 
@@ -50,7 +50,8 @@ impl DocumentService {
                         "Failed to determine file extension".to_string(),
                     ))?;
             let file_name = format!("{}.{}", database_entry.id, file_extension);
-            let storage_dir = Path::new("./storage");
+            let dir_path = format!("./storage/teachers/{}/", database_entry.teacher_id);
+            let storage_dir = Path::new(&dir_path);
             std::fs::create_dir_all(storage_dir)?;
 
             let file_path = storage_dir.join(file_name);
