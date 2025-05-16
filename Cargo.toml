@@ -13,6 +13,7 @@ password-auth = { version = '1.0.0' }
 tokio = { version = '1.45.0', features = ['full'] }
 tower-http = { version = '0.6.4', features = ['trace'] }
 diesel = { version = '2.2.10', features = ['postgres', 'chrono', 'r2d2', 'uuid'] }
+diesel_migrations = { version = '2.2.0' }
 
 # Logging
 log = { version = '0.4.27' }

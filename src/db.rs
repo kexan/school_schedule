@@ -1,9 +1,12 @@
 use std::env;
 
 use diesel::prelude::*;
+use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use tower_sessions_redis_store::fred::prelude::{
     Config, ConnectionConfig, PerformanceConfig, ReconnectPolicy,
 };
+
+const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 pub type PostgresPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<PgConnection>>;
 pub type PostgresConnection =
@@ -29,6 +32,12 @@ pub async fn establish_redis_connection() -> RedisPool {
         6,
     )
     .expect("Failed to create Redis pool")
+}
+
+pub fn run_db_migrations(mut connection: PostgresConnection) {
+    connection
+        .run_pending_migrations(MIGRATIONS)
+        .expect("Could not run migrations");
 }
 
 pub fn get_postgres_connection(pool: &PostgresPool) -> Result<PostgresConnection, DieselError> {
