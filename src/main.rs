@@ -45,7 +45,6 @@ async fn main() -> Result<(), Error> {
     let listener = TcpListener::bind("0.0.0.0:1234").await?;
     info!("Server started on {}", listener.local_addr()?);
     axum::serve(listener, router).await
-    //TODO: test
 }
 
 fn setup_tracing() {
