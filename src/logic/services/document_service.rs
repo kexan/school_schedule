@@ -95,10 +95,18 @@ impl DocumentService {
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
         let document = DocumentService::get(postgres_pool, document_id)?;
 
-        let file_name = document.name;
+        let file_extension =
+            document
+                .name
+                .split('.')
+                .next_back()
+                .ok_or(AppError::InternalServerError(
+                    "Could not get document name".to_string(),
+                ))?;
         let teacher_id = document.teacher_id;
 
         let dir_path = format!("./storage/teachers/{}/", teacher_id);
+        let file_name = document_id.to_string() + "." + file_extension;
         let full_path = Path::new(&dir_path).join(file_name);
 
         if full_path.exists() {

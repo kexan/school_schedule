@@ -4,6 +4,7 @@ use axum::{
 };
 use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
+use uuid::Uuid;
 
 use crate::{
     db::PostgresPool,
@@ -24,7 +25,7 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
             update_teacher,
             delete_teacher
         ))
-        .routes(routes!(upload_document));
+        .routes(routes!(upload_document, delete_document));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -85,5 +86,32 @@ async fn delete_teacher(
         Ok(Json("Successfully deleted".to_string()))
     } else {
         Ok(Json("Teacher not found".to_string()))
+    }
+}
+
+#[utoipa::path(
+    delete,
+    path = "/{teacher_id}/document/{document_id}",
+    params(
+        ("teacher_id" = i32, Path, description = "ID учителя к которому загружаем документ"),
+        ("document_id" = Uuid, Path, description = "ID документа который нужно удалить")
+    ),
+    responses(
+        (status = 200, description = "Документ удален", body = String)
+    )
+)]
+async fn delete_document(
+    State(postgres_pool): State<PostgresPool>,
+    Path((teacher_id, document_id)): Path<(i32, Uuid)>,
+) -> Result<Json<String>, AppError> {
+    info!(
+        "Deleting document {} from teacher with ID {}",
+        document_id, teacher_id
+    );
+    let delete_count = DocumentService::delete(&postgres_pool, document_id)?;
+    if delete_count {
+        Ok(Json("Successfully deleted".to_string()))
+    } else {
+        Ok(Json("Document not found".to_string()))
     }
 }
