@@ -1,4 +1,8 @@
-use std::{fs::File, io::Write, path::Path};
+use std::{
+    fs::{self, File},
+    io::Write,
+    path::Path,
+};
 
 use axum::extract::Multipart;
 use tracing::info;
@@ -74,13 +78,29 @@ impl DocumentService {
 
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
         let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let deleted_count = DocumentRepository::delete(&mut connection, document_id)?;
+        let document = DocumentRepository::get(&mut connection, document_id)?;
 
-        if deleted_count > 0 {
-            info!("Document with ID {} successfully deleted", document_id);
-            Ok(true)
+        let file_name = document.name;
+        let teacher_id = document.teacher_id;
+
+        let dir_path = format!("./storage/teachers/{}/", teacher_id);
+        let full_path = Path::new(&dir_path).join(file_name);
+
+        if full_path.exists() {
+            fs::remove_file(&full_path)?;
+            info!("File at {} successfully deleted", full_path.display());
+
+            let deleted_count = DocumentRepository::delete(&mut connection, document_id)?;
+
+            if deleted_count > 0 {
+                info!("Document with ID {} successfully deleted", document_id);
+                Ok(true)
+            } else {
+                info!("Document with ID {} not found", document_id);
+                Ok(false)
+            }
         } else {
-            info!("Document with ID {} not found", document_id);
+            info!("File at {} not found", full_path.display());
             Ok(false)
         }
     }
