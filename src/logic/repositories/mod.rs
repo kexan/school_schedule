@@ -1,3 +1,4 @@
+pub(super) mod attendance_repository;
 pub(super) mod document_repository;
 pub(super) mod lesson_repository;
 pub(super) mod parent_repository;
