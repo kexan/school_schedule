@@ -90,7 +90,7 @@ impl DocumentService {
         teacher_id: i32,
     ) -> Result<Vec<Document>, AppError> {
         let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let documents = DocumentRepository::get_all_for_teacher(&mut connection, teacher_id)?;
+        let documents = DocumentRepository::get_by_teacher_id(&mut connection, teacher_id)?;
         info!("Got all documents for teacher with ID {}", teacher_id);
         Ok(documents)
     }

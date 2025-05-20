@@ -23,7 +23,7 @@ impl DocumentRepository {
         documents.find(document_id).first(connection)
     }
 
-    pub fn get_all_for_teacher(
+    pub fn get_by_teacher_id(
         connection: &mut PostgresConnection,
         id: i32,
     ) -> QueryResult<Vec<Document>> {

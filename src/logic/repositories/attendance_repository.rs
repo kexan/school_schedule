@@ -1,9 +1,9 @@
-use diesel::{QueryDsl, QueryResult, RunQueryDsl};
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 
 use crate::{
     db::PostgresConnection,
     models::attendance::{Attendance, NewAttendance, UpdateAttendance},
-    schema::attendances::dsl::attendances,
+    schema::attendances::{dsl::attendances, lesson_id},
 };
 
 pub struct AttendanceRepository;
@@ -20,6 +20,13 @@ impl AttendanceRepository {
 
     pub fn get(connection: &mut PostgresConnection, attendance_id: i32) -> QueryResult<Attendance> {
         attendances.find(attendance_id).first(connection)
+    }
+
+    pub fn get_by_lesson_id(
+        connection: &mut PostgresConnection,
+        id: i32,
+    ) -> QueryResult<Vec<Attendance>> {
+        attendances.filter(lesson_id.eq(id)).load(connection)
     }
 
     pub fn update(
