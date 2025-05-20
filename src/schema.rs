@@ -1,6 +1,16 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    attendances (id) {
+        id -> Int4,
+        student_id -> Int4,
+        lesson_id -> Int4,
+        is_present -> Bool,
+        skip_reason -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
     documents (id) {
         id -> Uuid,
         name -> Varchar,
@@ -80,6 +90,8 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(attendances -> lessons (lesson_id));
+diesel::joinable!(attendances -> students (student_id));
 diesel::joinable!(documents -> teachers (teacher_id));
 diesel::joinable!(lessons -> student_groups (student_group_id));
 diesel::joinable!(student_groups -> teachers (teacher_id));
@@ -87,6 +99,7 @@ diesel::joinable!(students -> parents (parent_id));
 diesel::joinable!(students -> student_groups (student_group_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    attendances,
     documents,
     images,
     lessons,
