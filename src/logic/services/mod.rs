@@ -1,3 +1,4 @@
+pub mod attendance_service;
 pub mod document_service;
 pub mod lesson_service;
 pub mod parent_service;
