@@ -1,7 +1,8 @@
 use crate::db::PostgresConnection;
 use crate::models::student::{NewStudent, Student, UpdateStudent};
 use crate::schema::students::dsl::students;
-use diesel::{QueryDsl, QueryResult, RunQueryDsl};
+use crate::schema::students::student_group_id;
+use diesel::{ExpressionMethods, QueryDsl, QueryResult, RunQueryDsl};
 
 pub struct StudentRepository;
 
@@ -17,6 +18,13 @@ impl StudentRepository {
 
     pub fn get(connection: &mut PostgresConnection, student_id: i32) -> QueryResult<Student> {
         students.find(student_id).first(connection)
+    }
+
+    pub fn get_students_by_group_id(
+        connection: &mut PostgresConnection,
+        id: i32,
+    ) -> QueryResult<Vec<Student>> {
+        students.filter(student_group_id.eq(id)).load(connection)
     }
 
     pub fn update(

@@ -27,6 +27,17 @@ impl StudentService {
         Ok(student)
     }
 
+    pub fn get_students_from_group(
+        postgres_pool: &PostgresPool,
+        student_group_id: i32,
+    ) -> Result<Vec<Student>, AppError> {
+        let mut connection = db::get_postgres_connection(postgres_pool)?;
+        let students =
+            StudentRepository::get_students_by_group_id(&mut connection, student_group_id)?;
+        info!("Got students from group with ID {}", student_group_id);
+        Ok(students)
+    }
+
     pub fn update(
         postgres_pool: &PostgresPool,
         student_id: i32,
