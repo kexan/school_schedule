@@ -85,16 +85,6 @@ impl DocumentService {
         Ok(document)
     }
 
-    pub fn get_all_for_teacher(
-        postgres_pool: &PostgresPool,
-        teacher_id: i32,
-    ) -> Result<Vec<Document>, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let documents = DocumentRepository::get_by_teacher_id(&mut connection, teacher_id)?;
-        info!("Got all documents for teacher with ID {}", teacher_id);
-        Ok(documents)
-    }
-
     pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
         let document = DocumentService::get(postgres_pool, document_id)?;
 

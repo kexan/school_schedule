@@ -74,7 +74,7 @@ async fn get_teacher_documents(
     Path(teacher_id): Path<i32>,
 ) -> Result<Json<Vec<Document>>, AppError> {
     info!("Getting all teacher documents");
-    let documents = DocumentService::get_all_for_teacher(&postgres_pool, teacher_id)?;
+    let documents = TeacherService::get_documents(&postgres_pool, teacher_id)?;
     Ok(Json(documents))
 }
 

@@ -3,8 +3,13 @@ use tracing::{info, warn};
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::lesson_repository::LessonRepository,
-    models::lesson::{Lesson, NewLesson, UpdateLesson},
+    logic::repositories::{
+        attendance_repository::AttendanceRepository, lesson_repository::LessonRepository,
+    },
+    models::{
+        attendance::Attendance,
+        lesson::{Lesson, NewLesson, UpdateLesson},
+    },
 };
 
 pub struct LessonService;
@@ -22,6 +27,16 @@ impl LessonService {
         let lesson = LessonRepository::get(&mut connection, lesson_id)?;
         info!("Lesson with ID {} successfully get", lesson_id);
         Ok(lesson)
+    }
+
+    pub fn get_attendances(
+        postgres_pool: &PostgresPool,
+        lesson_id: i32,
+    ) -> Result<Vec<Attendance>, AppError> {
+        let mut connection = db::get_postgres_connection(postgres_pool)?;
+        let attendances = AttendanceRepository::get_by_lesson_id(&mut connection, lesson_id)?;
+        info!("Got attendances for lesson with ID {}", lesson_id);
+        Ok(attendances)
     }
 
     pub fn update(

@@ -3,8 +3,13 @@ use tracing::info;
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::teacher_repository::TeacherRepository,
-    models::teacher::{NewTeacher, Teacher, UpdateTeacher},
+    logic::repositories::{
+        document_repository::DocumentRepository, teacher_repository::TeacherRepository,
+    },
+    models::{
+        document::Document,
+        teacher::{NewTeacher, Teacher, UpdateTeacher},
+    },
 };
 
 pub struct TeacherService;
@@ -25,6 +30,16 @@ impl TeacherService {
         let teacher = TeacherRepository::get(&mut connection, teacher_id)?;
         info!("Teacher with ID {} successfully get", teacher.id);
         Ok(teacher)
+    }
+
+    pub fn get_documents(
+        postgres_pool: &PostgresPool,
+        teacher_id: i32,
+    ) -> Result<Vec<Document>, AppError> {
+        let mut connection = db::get_postgres_connection(postgres_pool)?;
+        let documents = DocumentRepository::get_by_teacher_id(&mut connection, teacher_id)?;
+        info!("Got all documents for teacher with ID {}", teacher_id);
+        Ok(documents)
     }
 
     pub fn update(
