@@ -14,8 +14,9 @@ impl StudentGroupService {
         postgres_pool: &PostgresPool,
         new_student_group: NewStudentGroup,
     ) -> Result<StudentGroup, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let student_group = StudentGroupRepository::create(&mut connection, new_student_group)?;
+        let student_group = db::with_connection(postgres_pool, |connection| {
+            StudentGroupRepository::create(connection, new_student_group)
+        })?;
         info!(
             "Successfully created student group with ID {}",
             student_group.id
@@ -27,8 +28,9 @@ impl StudentGroupService {
         postgres_pool: &PostgresPool,
         student_group_id: i32,
     ) -> Result<StudentGroup, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let student_group = StudentGroupRepository::get(&mut connection, student_group_id)?;
+        let student_group = db::with_connection(postgres_pool, |connection| {
+            StudentGroupRepository::get(connection, student_group_id)
+        })?;
         info!(
             "Student group with ID {} successfully get",
             student_group_id
@@ -41,12 +43,9 @@ impl StudentGroupService {
         student_group_id: i32,
         update_student_group: UpdateStudentGroup,
     ) -> Result<StudentGroup, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let updated_student_group = StudentGroupRepository::update(
-            &mut connection,
-            student_group_id,
-            update_student_group,
-        )?;
+        let updated_student_group = db::with_connection(postgres_pool, |connection| {
+            StudentGroupRepository::update(connection, student_group_id, update_student_group)
+        })?;
         info!(
             "Student group with ID {} was successfully updated",
             student_group_id
@@ -54,18 +53,19 @@ impl StudentGroupService {
         Ok(updated_student_group)
     }
 
-    pub fn delete(postgres_pool: &PostgresPool, student_id: i32) -> Result<bool, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let deleted_count = StudentGroupRepository::delete(&mut connection, student_id)?;
+    pub fn delete(postgres_pool: &PostgresPool, student_group_id: i32) -> Result<bool, AppError> {
+        let deleted_count = db::with_connection(postgres_pool, |connection| {
+            StudentGroupRepository::delete(connection, student_group_id)
+        })?;
 
         if deleted_count > 0 {
             info!(
                 "Student group with ID {} was successfully deleted",
-                student_id
+                student_group_id
             );
             Ok(true)
         } else {
-            warn!("Student group with ID {} not found", student_id);
+            warn!("Student group with ID {} not found", student_group_id);
             Ok(false)
         }
     }

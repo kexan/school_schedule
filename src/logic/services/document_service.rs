@@ -9,7 +9,7 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    db::{self, PostgresPool},
+    db,
     error::AppError,
     logic::repositories::document_repository::DocumentRepository,
     models::document::{Document, NewDocument},
@@ -19,7 +19,7 @@ pub struct DocumentService;
 
 impl DocumentService {
     pub async fn create(
-        postgres_pool: &PostgresPool,
+        postgres_pool: &db::PostgresPool,
         mut multipart: Multipart,
         teacher_id: i32,
     ) -> Result<Document, AppError> {
@@ -43,8 +43,9 @@ impl DocumentService {
                 .to_string();
 
             let new_document = NewDocument { name, teacher_id };
-            let mut connection = db::get_postgres_connection(postgres_pool)?;
-            let database_entry = DocumentRepository::create(&mut connection, new_document)?;
+            let database_entry = db::with_connection(postgres_pool, |connection| {
+                DocumentRepository::create(connection, new_document)
+            })?;
 
             let file_name = format!("{}.{}", database_entry.id, database_entry.file_extension()?);
             let dir_path = format!("./storage/teachers/{}/", database_entry.teacher_id);
@@ -78,15 +79,18 @@ impl DocumentService {
         }
     }
 
-    pub fn get(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let document = DocumentRepository::get(&mut connection, document_id)?;
+    pub fn get(postgres_pool: &db::PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
+        let document = db::with_connection(postgres_pool, |connection| {
+            DocumentRepository::get(connection, document_id)
+        })?;
         info!("Document with ID {} successfully get", document_id);
         Ok(document)
     }
 
-    pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
-        let document = DocumentService::get(postgres_pool, document_id)?;
+    pub fn delete(postgres_pool: &db::PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
+        let document = db::with_connection(postgres_pool, |connection| {
+            DocumentRepository::get(connection, document_id)
+        })?;
 
         let file_extension = document.file_extension()?;
         let teacher_id = document.teacher_id;
@@ -99,8 +103,9 @@ impl DocumentService {
             fs::remove_file(&full_path)?;
             info!("File at {} successfully deleted", full_path.display());
 
-            let mut connection = db::get_postgres_connection(postgres_pool)?;
-            let deleted_count = DocumentRepository::delete(&mut connection, document_id)?;
+            let deleted_count = db::with_connection(postgres_pool, |connection| {
+                DocumentRepository::delete(connection, document_id)
+            })?;
 
             if deleted_count > 0 {
                 info!("Document with ID {} successfully deleted", document_id);

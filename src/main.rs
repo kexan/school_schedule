@@ -23,12 +23,10 @@ async fn main() -> Result<(), Error> {
         .expect("Failed to create Redis connection");
     let session_store = RedisStore::new(redis_pool);
     //TODO: SSL support
-    let session_layer = SessionManagerLayer::new(session_store).with_secure(false);
+    let _session_layer = SessionManagerLayer::new(session_store).with_secure(false);
 
     let postgres_pool = db::establish_postgres_connection();
-    //TODO: убрать expect
-    let connection = db::get_postgres_connection(&postgres_pool).expect("Could not get connection");
-    db::run_db_migrations(connection);
+    db::run_db_migrations(&postgres_pool);
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/api/v1/students", handlers::student_handler::router())

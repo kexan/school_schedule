@@ -6,6 +6,8 @@ use tower_sessions_redis_store::fred::prelude::{
     Config, ConnectionConfig, PerformanceConfig, ReconnectPolicy,
 };
 
+use crate::error::AppError;
+
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 pub type PostgresPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<PgConnection>>;
@@ -34,12 +36,20 @@ pub async fn establish_redis_connection() -> RedisPool {
     .expect("Failed to create Redis pool")
 }
 
-pub fn run_db_migrations(mut connection: PostgresConnection) {
+pub fn run_db_migrations(pool: &PostgresPool) {
+    let mut connection = pool.get().expect("Failed to get connection for migrations");
     connection
         .run_pending_migrations(MIGRATIONS)
-        .expect("Could not run migrations");
+        .expect("Failed to run migrations");
 }
 
-pub fn get_postgres_connection(pool: &PostgresPool) -> Result<PostgresConnection, DieselError> {
-    pool.get()
+pub fn with_connection<T, E, F>(pool: &PostgresPool, f: F) -> Result<T, AppError>
+where
+    F: FnOnce(
+        &mut r2d2::PooledConnection<diesel::r2d2::ConnectionManager<diesel::PgConnection>>,
+    ) -> Result<T, E>,
+    E: Into<AppError>,
+{
+    let mut connection = pool.get()?;
+    f(&mut connection).map_err(Into::into)
 }

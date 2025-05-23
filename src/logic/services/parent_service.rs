@@ -11,15 +11,17 @@ pub struct ParentService;
 
 impl ParentService {
     pub fn create(postgres_pool: &PostgresPool, new_parent: NewParent) -> Result<Parent, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let parent = ParentRepository::create(&mut connection, new_parent)?;
+        let parent = db::with_connection(postgres_pool, |connection| {
+            ParentRepository::create(connection, new_parent)
+        })?;
         info!("Successfully created parent with ID {}", parent.id);
         Ok(parent)
     }
 
     pub fn get(postgres_pool: &PostgresPool, parent_id: i32) -> Result<Parent, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let parent = ParentRepository::get(&mut connection, parent_id)?;
+        let parent = db::with_connection(postgres_pool, |connection| {
+            ParentRepository::get(connection, parent_id)
+        })?;
         info!("Parent with ID {} successfully get", parent_id);
         Ok(parent)
     }
@@ -29,15 +31,17 @@ impl ParentService {
         parent_id: i32,
         update_parent: UpdateParent,
     ) -> Result<Parent, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let updated_parent = ParentRepository::update(&mut connection, parent_id, update_parent)?;
+        let updated_parent = db::with_connection(postgres_pool, |connection| {
+            ParentRepository::update(connection, parent_id, update_parent)
+        })?;
         info!("Parent with ID {} was successfully updated", parent_id);
         Ok(updated_parent)
     }
 
     pub fn delete(postgres_pool: &PostgresPool, parent_id: i32) -> Result<bool, AppError> {
-        let mut connection = db::get_postgres_connection(postgres_pool)?;
-        let deleted_count = ParentRepository::delete(&mut connection, parent_id)?;
+        let deleted_count = db::with_connection(postgres_pool, |connection| {
+            ParentRepository::delete(connection, parent_id)
+        })?;
 
         if deleted_count > 0 {
             info!("Parent with ID {} was successfully deleted", parent_id);
