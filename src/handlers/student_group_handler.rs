@@ -8,9 +8,9 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     db::PostgresPool,
     error::AppError,
-    logic::services::student_group_service::StudentGroupService,
+    logic::services::{lesson_service::LessonService, student_group_service::StudentGroupService},
     models::{
-        lesson::Lesson,
+        lesson::{Lesson, NewLesson},
         student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
     },
 };
@@ -24,7 +24,10 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
             update_student_group,
             delete_student_group
         ))
-        .routes(routes!(get_lessons_for_student_group));
+        .routes(routes!(
+            get_lessons_for_student_group,
+            create_lesson_for_student_group
+        ));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -36,6 +39,24 @@ async fn create_student_group(
     info!("Creating new student group");
     let new_student_group = StudentGroupService::create(&postgres_pool, new_student_group)?;
     Ok(Json(new_student_group))
+}
+
+#[utoipa::path(post, path = "/{id}/lessons", params(("id" = i32, Path, description = "ID группы учеников для которой создаем урок")), request_body = NewLesson)]
+async fn create_lesson_for_student_group(
+    State(postgres_pool): State<PostgresPool>,
+    Path(student_group_id): Path<i32>,
+    Json(new_lesson): Json<NewLesson>,
+) -> Result<Json<Lesson>, AppError> {
+    info!(
+        "Creating new lesson for student group with ID {}",
+        student_group_id
+    );
+    let new_lesson = NewLesson {
+        student_group_id: Some(student_group_id),
+        ..new_lesson
+    };
+    let new_lesson = LessonService::create(&postgres_pool, new_lesson)?;
+    Ok(Json(new_lesson))
 }
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемой группы учеников")))]
