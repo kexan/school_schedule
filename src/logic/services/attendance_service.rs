@@ -1,7 +1,7 @@
 use tracing::{info, warn};
 
 use crate::{
-    db,
+    db::{self, PostgresPool},
     error::AppError,
     logic::repositories::attendance_repository::AttendanceRepository,
     models::attendance::{Attendance, NewAttendance, UpdateAttendance},
@@ -13,7 +13,7 @@ pub struct AttendanceService;
 
 impl AttendanceService {
     pub fn create(
-        postgres_pool: &db::PostgresPool,
+        postgres_pool: &PostgresPool,
         new_attendance: NewAttendance,
     ) -> Result<Attendance, AppError> {
         let attendance = db::with_connection(postgres_pool, |connection| {
@@ -24,7 +24,7 @@ impl AttendanceService {
     }
 
     pub fn create_attendances_for_group(
-        postgres_pool: &db::PostgresPool,
+        postgres_pool: &PostgresPool,
         lesson_id: i32,
         student_group_id: i32,
     ) -> Result<Vec<Attendance>, AppError> {
@@ -52,10 +52,7 @@ impl AttendanceService {
         Ok(attendances)
     }
 
-    pub fn get(
-        postgres_pool: &db::PostgresPool,
-        attendance_id: i32,
-    ) -> Result<Attendance, AppError> {
+    pub fn get(postgres_pool: &PostgresPool, attendance_id: i32) -> Result<Attendance, AppError> {
         let attendance = db::with_connection(postgres_pool, |connection| {
             AttendanceRepository::get(connection, attendance_id)
         })?;
@@ -63,8 +60,19 @@ impl AttendanceService {
         Ok(attendance)
     }
 
+    pub fn get_by_lesson_id(
+        postgres_pool: &PostgresPool,
+        lesson_id: i32,
+    ) -> Result<Vec<Attendance>, AppError> {
+        let attendances = db::with_connection(postgres_pool, |connection| {
+            AttendanceRepository::get_by_lesson_id(connection, lesson_id)
+        })?;
+        info!("Got attendances for lesson with ID {}", lesson_id);
+        Ok(attendances)
+    }
+
     pub fn update(
-        postgres_pool: &db::PostgresPool,
+        postgres_pool: &PostgresPool,
         attendance_id: i32,
         update_attendance: UpdateAttendance,
     ) -> Result<Attendance, AppError> {
@@ -78,7 +86,7 @@ impl AttendanceService {
         Ok(updated_attendance)
     }
 
-    pub fn delete(postgres_pool: &db::PostgresPool, attendance_id: i32) -> Result<bool, AppError> {
+    pub fn delete(postgres_pool: &PostgresPool, attendance_id: i32) -> Result<bool, AppError> {
         let deleted_count = db::with_connection(postgres_pool, |connection| {
             AttendanceRepository::delete(connection, attendance_id)
         })?;
@@ -96,7 +104,7 @@ impl AttendanceService {
     }
 
     pub fn delete_by_lesson_id(
-        postgres_pool: &db::PostgresPool,
+        postgres_pool: &PostgresPool,
         lesson_id: i32,
     ) -> Result<bool, AppError> {
         let deleted_count = db::with_connection(postgres_pool, |connection| {

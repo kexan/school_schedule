@@ -4,9 +4,7 @@ use crate::{
     db::{self, PostgresPool},
     error::AppError,
     logic::{
-        repositories::{
-            attendance_repository::AttendanceRepository, lesson_repository::LessonRepository,
-        },
+        repositories::lesson_repository::LessonRepository,
         services::attendance_service::AttendanceService,
     },
     models::{
@@ -45,9 +43,7 @@ impl LessonService {
         postgres_pool: &PostgresPool,
         lesson_id: i32,
     ) -> Result<Vec<Attendance>, AppError> {
-        let attendances = db::with_connection(postgres_pool, |connection| {
-            AttendanceRepository::get_by_lesson_id(connection, lesson_id)
-        })?;
+        let attendances = AttendanceService::get_by_lesson_id(postgres_pool, lesson_id)?;
         info!("Got attendances for lesson with ID {}", lesson_id);
         Ok(attendances)
     }
@@ -57,19 +53,22 @@ impl LessonService {
         lesson_id: i32,
         update_lesson: UpdateLesson,
     ) -> Result<Lesson, AppError> {
-        let updated_lesson = db::with_connection(postgres_pool, |connection| {
-            let current_lesson = LessonRepository::get(connection, lesson_id)?;
-            if current_lesson.student_group_id != update_lesson.student_group_id {
-                AttendanceService::delete_by_lesson_id(postgres_pool, lesson_id);
+        let current_lesson = db::with_connection(postgres_pool, |connection| {
+            LessonRepository::get(connection, lesson_id)
+        })?;
+        if current_lesson.student_group_id != update_lesson.student_group_id {
+            AttendanceService::delete_by_lesson_id(postgres_pool, lesson_id)?;
 
-                if let Some(student_group_id) = update_lesson.student_group_id {
-                    AttendanceService::create_attendances_for_group(
-                        postgres_pool,
-                        lesson_id,
-                        student_group_id,
-                    );
-                }
+            if let Some(student_group_id) = update_lesson.student_group_id {
+                AttendanceService::create_attendances_for_group(
+                    postgres_pool,
+                    lesson_id,
+                    student_group_id,
+                )?;
             }
+        }
+
+        let updated_lesson = db::with_connection(postgres_pool, |connection| {
             LessonRepository::update(connection, lesson_id, update_lesson)
         })?;
 
