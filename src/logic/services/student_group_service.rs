@@ -3,8 +3,13 @@ use tracing::{info, warn};
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::student_group_repository::StudentGroupRepository,
-    models::student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+    logic::repositories::{
+        lesson_repository::LessonRepository, student_group_repository::StudentGroupRepository,
+    },
+    models::{
+        lesson::Lesson,
+        student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+    },
 };
 
 pub struct StudentGroupService;
@@ -36,6 +41,17 @@ impl StudentGroupService {
             student_group_id
         );
         Ok(student_group)
+    }
+
+    pub fn get_lessons(
+        postgres_pool: &PostgresPool,
+        student_group_id: i32,
+    ) -> Result<Vec<Lesson>, AppError> {
+        let lessons = db::with_connection(postgres_pool, |connection| {
+            LessonRepository::get_lessons_by_group_id(connection, student_group_id)
+        })?;
+        info!("Got lessons for group with ID {}", student_group_id);
+        Ok(lessons)
     }
 
     pub fn update(

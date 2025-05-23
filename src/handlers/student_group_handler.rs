@@ -9,17 +9,22 @@ use crate::{
     db::PostgresPool,
     error::AppError,
     logic::services::student_group_service::StudentGroupService,
-    models::student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+    models::{
+        lesson::Lesson,
+        student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+    },
 };
 
 pub fn router() -> OpenApiRouter<PostgresPool> {
     //TODO: добавить пермишены
-    let dont_need_permissions = OpenApiRouter::new().routes(routes!(
-        create_student_group,
-        get_student_group,
-        update_student,
-        delete_student_group
-    ));
+    let dont_need_permissions = OpenApiRouter::new()
+        .routes(routes!(
+            create_student_group,
+            get_student_group,
+            update_student_group,
+            delete_student_group
+        ))
+        .routes(routes!(get_lessons_for_student_group));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -43,12 +48,22 @@ async fn get_student_group(
     Ok(Json(student_group))
 }
 
+#[utoipa::path(get, path = "/{id}/lessons", params(("id" = i32, Path, description = "ID группы учеников для которой запрашиваем уроки")))]
+async fn get_lessons_for_student_group(
+    State(postgres_pool): State<PostgresPool>,
+    Path(student_group_id): Path<i32>,
+) -> Result<Json<Vec<Lesson>>, AppError> {
+    info!("Getting student group lessons");
+    let lessons = StudentGroupService::get_lessons(&postgres_pool, student_group_id)?;
+    Ok(Json(lessons))
+}
+
 #[utoipa::path(
     put, path = "/{id}", 
     params(("id" = i32, Path, description = "ID Группы учеников которую требуется обновить")),
     request_body = UpdateStudentGroup
 )]
-async fn update_student(
+async fn update_student_group(
     State(postgres_pool): State<PostgresPool>,
     Path(student_group_id): Path<i32>,
     Json(update_student_group): Json<UpdateStudentGroup>,
