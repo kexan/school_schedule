@@ -3,8 +3,11 @@ use tracing::{info, warn};
 use crate::{
     db::{self, PostgresPool},
     error::AppError,
-    logic::repositories::{
-        attendance_repository::AttendanceRepository, lesson_repository::LessonRepository,
+    logic::{
+        repositories::{
+            attendance_repository::AttendanceRepository, lesson_repository::LessonRepository,
+        },
+        services::attendance_service::AttendanceService,
     },
     models::{
         attendance::Attendance,
@@ -19,6 +22,13 @@ impl LessonService {
         let lesson = db::with_connection(postgres_pool, |connection| {
             LessonRepository::create(connection, new_lesson)
         })?;
+        if let Some(student_group_id) = lesson.student_group_id {
+            AttendanceService::create_attendances_for_group(
+                postgres_pool,
+                lesson.id,
+                student_group_id,
+            )?;
+        }
         info!("Successfully created lesson with ID {}", lesson.id);
         Ok(lesson)
     }
@@ -48,8 +58,21 @@ impl LessonService {
         update_lesson: UpdateLesson,
     ) -> Result<Lesson, AppError> {
         let updated_lesson = db::with_connection(postgres_pool, |connection| {
+            let current_lesson = LessonRepository::get(connection, lesson_id)?;
+            if current_lesson.student_group_id != update_lesson.student_group_id {
+                AttendanceService::delete_by_lesson_id(postgres_pool, lesson_id);
+
+                if let Some(student_group_id) = update_lesson.student_group_id {
+                    AttendanceService::create_attendances_for_group(
+                        postgres_pool,
+                        lesson_id,
+                        student_group_id,
+                    );
+                }
+            }
             LessonRepository::update(connection, lesson_id, update_lesson)
         })?;
+
         info!("Lesson with ID {} was successfully updated", lesson_id);
         Ok(updated_lesson)
     }

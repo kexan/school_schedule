@@ -7,6 +7,8 @@ use crate::{
     models::attendance::{Attendance, NewAttendance, UpdateAttendance},
 };
 
+use super::student_service::StudentService;
+
 pub struct AttendanceService;
 
 impl AttendanceService {
@@ -19,6 +21,35 @@ impl AttendanceService {
         })?;
         info!("Successfully created attendance with ID {}", attendance.id);
         Ok(attendance)
+    }
+
+    pub fn create_attendances_for_group(
+        postgres_pool: &db::PostgresPool,
+        lesson_id: i32,
+        student_group_id: i32,
+    ) -> Result<Vec<Attendance>, AppError> {
+        let students = StudentService::get_students_from_group(postgres_pool, student_group_id)?;
+        let mut new_attendances = Vec::new();
+
+        for student in students {
+            let new_attendance = NewAttendance {
+                lesson_id,
+                student_id: student.id,
+                is_present: false,
+                skip_reason: None,
+            };
+
+            new_attendances.push(new_attendance);
+        }
+
+        let attendances = db::with_connection(postgres_pool, |connection| {
+            AttendanceRepository::batch_create(connection, new_attendances)
+        })?;
+        info!(
+            "Successfully created all attendances for lesson {}, for students in group {}",
+            lesson_id, student_group_id
+        );
+        Ok(attendances)
     }
 
     pub fn get(
@@ -60,6 +91,26 @@ impl AttendanceService {
             Ok(true)
         } else {
             warn!("Attendance with ID {} not found", attendance_id);
+            Ok(false)
+        }
+    }
+
+    pub fn delete_by_lesson_id(
+        postgres_pool: &db::PostgresPool,
+        lesson_id: i32,
+    ) -> Result<bool, AppError> {
+        let deleted_count = db::with_connection(postgres_pool, |connection| {
+            AttendanceRepository::delete_by_lesson_id(connection, lesson_id)
+        })?;
+
+        if deleted_count > 0 {
+            info!(
+                "Deleted {} attendances for lesson {}",
+                deleted_count, lesson_id
+            );
+            Ok(true)
+        } else {
+            warn!("Not found attendances for lesson {}", lesson_id);
             Ok(false)
         }
     }

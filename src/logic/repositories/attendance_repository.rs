@@ -18,6 +18,15 @@ impl AttendanceRepository {
             .get_result(connection)
     }
 
+    pub fn batch_create(
+        connection: &mut PostgresConnection,
+        new_attendances: Vec<NewAttendance>,
+    ) -> QueryResult<Vec<Attendance>> {
+        diesel::insert_into(attendances)
+            .values(new_attendances)
+            .get_results(connection)
+    }
+
     pub fn get(connection: &mut PostgresConnection, attendance_id: i32) -> QueryResult<Attendance> {
         attendances.find(attendance_id).first(connection)
     }
@@ -41,5 +50,9 @@ impl AttendanceRepository {
 
     pub fn delete(connection: &mut PostgresConnection, attendance_id: i32) -> QueryResult<usize> {
         diesel::delete(attendances.find(attendance_id)).execute(connection)
+    }
+
+    pub fn delete_by_lesson_id(connection: &mut PostgresConnection, id: i32) -> QueryResult<usize> {
+        diesel::delete(attendances.filter(lesson_id.eq(id))).execute(connection)
     }
 }
