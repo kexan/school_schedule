@@ -9,7 +9,7 @@ use tracing::info;
 use uuid::Uuid;
 
 use crate::{
-    db,
+    db::{self, PostgresPool},
     error::AppError,
     logic::repositories::document_repository::DocumentRepository,
     models::document::{Document, NewDocument},
@@ -19,7 +19,7 @@ pub struct DocumentService;
 
 impl DocumentService {
     pub async fn create(
-        postgres_pool: &db::PostgresPool,
+        postgres_pool: &PostgresPool,
         mut multipart: Multipart,
         teacher_id: i32,
     ) -> Result<Document, AppError> {
@@ -79,7 +79,7 @@ impl DocumentService {
         }
     }
 
-    pub fn get(postgres_pool: &db::PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
+    pub fn get(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<Document, AppError> {
         let document = db::with_connection(postgres_pool, |connection| {
             DocumentRepository::get(connection, document_id)
         })?;
@@ -87,7 +87,7 @@ impl DocumentService {
         Ok(document)
     }
 
-    pub fn delete(postgres_pool: &db::PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
+    pub fn delete(postgres_pool: &PostgresPool, document_id: Uuid) -> Result<bool, AppError> {
         let document = db::with_connection(postgres_pool, |connection| {
             DocumentRepository::get(connection, document_id)
         })?;

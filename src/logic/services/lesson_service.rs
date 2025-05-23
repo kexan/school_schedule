@@ -17,6 +17,7 @@ pub struct LessonService;
 
 impl LessonService {
     pub fn create(postgres_pool: &PostgresPool, new_lesson: NewLesson) -> Result<Lesson, AppError> {
+        //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
         let lesson = db::with_connection(postgres_pool, |connection| {
             LessonRepository::create(connection, new_lesson)
         })?;
@@ -53,6 +54,7 @@ impl LessonService {
         lesson_id: i32,
         update_lesson: UpdateLesson,
     ) -> Result<Lesson, AppError> {
+        //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
         let current_lesson = db::with_connection(postgres_pool, |connection| {
             LessonRepository::get(connection, lesson_id)
         })?;

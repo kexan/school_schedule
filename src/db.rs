@@ -1,6 +1,9 @@
 use std::env;
 
-use diesel::prelude::*;
+use diesel::{
+    prelude::*,
+    r2d2::{self, ConnectionManager, Pool, PooledConnection},
+};
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness, embed_migrations};
 use tower_sessions_redis_store::fred::prelude::{
     Config, ConnectionConfig, PerformanceConfig, ReconnectPolicy,
@@ -10,16 +13,15 @@ use crate::error::AppError;
 
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
-pub type PostgresPool = diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<PgConnection>>;
-pub type PostgresConnection =
-    diesel::r2d2::PooledConnection<diesel::r2d2::ConnectionManager<PgConnection>>;
+pub type PostgresPool = Pool<ConnectionManager<PgConnection>>;
+pub type PostgresConnection = PooledConnection<ConnectionManager<PgConnection>>;
 pub type DieselError = r2d2::Error;
 pub type RedisPool = tower_sessions_redis_store::fred::prelude::Pool;
 
 pub fn establish_postgres_connection() -> PostgresPool {
     let postgres_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let connection_manager = diesel::r2d2::ConnectionManager::<PgConnection>::new(postgres_url);
-    diesel::r2d2::Pool::builder()
+    let connection_manager = ConnectionManager::<PgConnection>::new(postgres_url);
+    Pool::builder()
         .build(connection_manager)
         .expect("Failed to create Postgres pool")
 }
@@ -45,9 +47,7 @@ pub fn run_db_migrations(pool: &PostgresPool) {
 
 pub fn with_connection<T, E, F>(pool: &PostgresPool, f: F) -> Result<T, AppError>
 where
-    F: FnOnce(
-        &mut r2d2::PooledConnection<diesel::r2d2::ConnectionManager<diesel::PgConnection>>,
-    ) -> Result<T, E>,
+    F: FnOnce(&mut PooledConnection<ConnectionManager<diesel::PgConnection>>) -> Result<T, E>,
     E: Into<AppError>,
 {
     let mut connection = pool.get()?;
