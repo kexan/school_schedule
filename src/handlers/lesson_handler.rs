@@ -9,17 +9,22 @@ use crate::{
     db::PostgresPool,
     error::AppError,
     logic::services::lesson_service::LessonService,
-    models::lesson::{Lesson, NewLesson, UpdateLesson},
+    models::{
+        attendance::Attendance,
+        lesson::{Lesson, NewLesson, UpdateLesson},
+    },
 };
 
 pub fn router() -> OpenApiRouter<PostgresPool> {
     //TODO: добавить пермишены
-    let dont_need_permissions = OpenApiRouter::new().routes(routes!(
-        create_lesson,
-        get_lesson,
-        update_lesson,
-        delete_lesson
-    ));
+    let dont_need_permissions = OpenApiRouter::new()
+        .routes(routes!(
+            create_lesson,
+            get_lesson,
+            update_lesson,
+            delete_lesson
+        ))
+        .routes(routes!(get_atttendances_for_lesson));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -41,6 +46,16 @@ async fn get_lesson(
     info!("Getting lesson");
     let lesson = LessonService::get(&postgres_pool, lesson_id)?;
     Ok(Json(lesson))
+}
+
+#[utoipa::path(get, path = "/{id}/attendances", params(("id" = i32, Path, description = "ID урока для которого запрашваются посещения")))]
+async fn get_atttendances_for_lesson(
+    State(postgres_pool): State<PostgresPool>,
+    Path(lesson_id): Path<i32>,
+) -> Result<Json<Vec<Attendance>>, AppError> {
+    info!("Getting lesson");
+    let attendances = LessonService::get_attendances(&postgres_pool, lesson_id)?;
+    Ok(Json(attendances))
 }
 
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Урока который требуется обновить")), request_body = UpdateLesson)]
