@@ -1,8 +1,9 @@
 use axum::extract::FromRef;
 use logic::services::{
-    attendance_service::AttendanceService, lesson_service::LessonService,
-    parent_service::ParentService, student_group_service::StudentGroupService,
-    student_service::StudentService, teacher_service::TeacherService,
+    attendance_service::AttendanceService, document_service::DocumentService,
+    lesson_service::LessonService, parent_service::ParentService,
+    student_group_service::StudentGroupService, student_service::StudentService,
+    teacher_service::TeacherService,
 };
 
 pub mod db;
@@ -20,10 +21,11 @@ pub struct AppState {
 
 #[derive(Clone, FromRef)]
 pub struct AppServices {
-    pub lesson: LessonService,
-    pub parent: ParentService,
-    pub student: StudentService,
-    pub student_group: StudentGroupService,
-    pub teacher: TeacherService,
-    pub attendance: AttendanceService,
+    pub lesson_service: LessonService,
+    pub parent_service: ParentService,
+    pub student_service: StudentService,
+    pub student_group_service: StudentGroupService,
+    pub teacher_service: TeacherService,
+    pub attendance_service: AttendanceService,
+    pub document_service: DocumentService,
 }

@@ -6,13 +6,12 @@ use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    db::PostgresPool,
+    AppServices,
     error::AppError,
-    logic::services::student_service::StudentService,
     models::student::{NewStudent, Student, UpdateStudent},
 };
 
-pub fn router() -> OpenApiRouter<PostgresPool> {
+pub fn router() -> OpenApiRouter<AppServices> {
     //TODO: добавить пермишены
     let dont_need_permissions = OpenApiRouter::new().routes(routes!(
         create_student,
@@ -25,43 +24,51 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
 
 #[utoipa::path(post, path = "/", request_body = NewStudent)]
 async fn create_student(
-    State(postgres_pool): State<PostgresPool>,
+    State(AppServices {
+        student_service, ..
+    }): State<AppServices>,
     Json(new_student): Json<NewStudent>,
 ) -> Result<Json<Student>, AppError> {
     info!("Creating new student");
-    let new_student = StudentService::create(&postgres_pool, new_student)?;
+    let new_student = student_service.create(new_student)?;
     Ok(Json(new_student))
 }
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого ученика")))]
 async fn get_student(
-    State(postgres_pool): State<PostgresPool>,
+    State(AppServices {
+        student_service, ..
+    }): State<AppServices>,
     Path(student_id): Path<i32>,
 ) -> Result<Json<Student>, AppError> {
     info!("Getting student");
-    let student = StudentService::get(&postgres_pool, student_id)?;
+    let student = student_service.get(student_id)?;
     Ok(Json(student))
 }
 
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется обновить")), request_body = UpdateStudent)]
 async fn update_student(
-    State(postgres_pool): State<PostgresPool>,
+    State(AppServices {
+        student_service, ..
+    }): State<AppServices>,
     Path(student_id): Path<i32>,
     Json(update_student): Json<UpdateStudent>,
 ) -> Result<Json<Student>, AppError> {
     info!("Updating student");
-    let updated_student = StudentService::update(&postgres_pool, student_id, update_student)?;
+    let updated_student = student_service.update(student_id, update_student)?;
     Ok(Json(updated_student))
 }
 
 #[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется удалить")))]
 async fn delete_student(
-    State(postgres_pool): State<PostgresPool>,
+    State(AppServices {
+        student_service, ..
+    }): State<AppServices>,
     Path(student_id): Path<i32>,
 ) -> Result<Json<String>, AppError> {
     info!("Deleting student");
-    let delete_count = StudentService::delete(&postgres_pool, student_id)?;
-    if delete_count {
+    let deleted = student_service.delete(student_id)?;
+    if deleted {
         Ok(Json("Successfully deleted".to_string()))
     } else {
         Ok(Json("Student not found".to_string()))
