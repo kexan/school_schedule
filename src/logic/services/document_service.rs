@@ -93,6 +93,12 @@ impl DocumentService {
         Ok(document)
     }
 
+    pub fn get_by_teacher_id(&self, teacher_id: i32) -> Result<Vec<Document>, AppError> {
+        let documents = self.document_repository.get_by_teacher_id(teacher_id)?;
+        info!("Got all documents for teacher with ID {}", teacher_id);
+        Ok(documents)
+    }
+
     pub fn delete(&self, document_id: Uuid) -> Result<bool, AppError> {
         let document = self.document_repository.get(document_id)?;
 

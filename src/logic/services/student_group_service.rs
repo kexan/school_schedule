@@ -4,42 +4,35 @@ use tracing::{info, warn};
 use crate::{
     AppState,
     error::AppError,
-    logic::repositories::{
-        lesson_repository::LessonRepository, student_group_repository::StudentGroupRepository,
-    },
-    models::{
-        lesson::Lesson,
-        student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
-    },
+    logic::repositories::student_group_repository::StudentGroupRepository,
+    models::student_group::{NewStudentGroup, StudentGroupWithRelations, UpdateStudentGroup},
 };
 
 #[derive(Clone)]
 pub struct StudentGroupService {
     student_group_repository: StudentGroupRepository,
-    lesson_repository: LessonRepository,
 }
 
 impl StudentGroupService {
-    pub fn new(
-        student_group_repository: StudentGroupRepository,
-        lesson_repository: LessonRepository,
-    ) -> Self {
+    pub fn new(student_group_repository: StudentGroupRepository) -> Self {
         Self {
             student_group_repository,
-            lesson_repository,
         }
     }
 
-    pub fn create(&self, new_student_group: NewStudentGroup) -> Result<StudentGroup, AppError> {
-        let student_group = self.student_group_repository.create(new_student_group)?;
+    pub fn create(
+        &self,
+        new_student_group: NewStudentGroup,
+    ) -> Result<StudentGroupWithRelations, AppError> {
+        let student_group_full = self.student_group_repository.create(new_student_group)?;
         info!(
             "Successfully created student group with ID {}",
-            student_group.id
+            student_group_full.student_group.id
         );
-        Ok(student_group)
+        Ok(student_group_full)
     }
 
-    pub fn get(&self, student_group_id: i32) -> Result<StudentGroup, AppError> {
+    pub fn get(&self, student_group_id: i32) -> Result<StudentGroupWithRelations, AppError> {
         let student_group = self.student_group_repository.get(student_group_id)?;
         info!(
             "Student group with ID {} successfully get",
@@ -48,19 +41,11 @@ impl StudentGroupService {
         Ok(student_group)
     }
 
-    pub fn get_lessons(&self, student_group_id: i32) -> Result<Vec<Lesson>, AppError> {
-        let lessons = self
-            .lesson_repository
-            .get_lessons_by_group_id(student_group_id)?;
-        info!("Got lessons for group with ID {}", student_group_id);
-        Ok(lessons)
-    }
-
     pub fn update(
         &self,
         student_group_id: i32,
         update_student_group: UpdateStudentGroup,
-    ) -> Result<StudentGroup, AppError> {
+    ) -> Result<StudentGroupWithRelations, AppError> {
         let updated_student_group = self
             .student_group_repository
             .update(student_group_id, update_student_group)?;

@@ -71,11 +71,11 @@ async fn get_teacher(
 
 #[utoipa::path(get, path = "/{id}/documents", params(("id" = i32, Path, description = "ID учителя у которого запрашиваются документы")))]
 async fn get_teacher_documents(
-    State(teacher_service): State<TeacherService>,
+    State(document_service): State<DocumentService>,
     Path(teacher_id): Path<i32>,
 ) -> Result<Json<Vec<Document>>, AppError> {
     info!("Getting documents for teacher with ID {}", teacher_id);
-    let documents = teacher_service.get_documents(teacher_id)?;
+    let documents = document_service.get_by_teacher_id(teacher_id)?;
     Ok(Json(documents))
 }
 

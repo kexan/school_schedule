@@ -40,10 +40,9 @@ pub fn init_app_services(pool: PostgresPool) -> AppServices {
     );
     let parent_service = ParentService::new(parent_repo);
     let student_service = StudentService::new(student_repo.clone());
-    let student_group_service = StudentGroupService::new(student_group_repo, lesson_repo);
-    let teacher_service = TeacherService::new(teacher_repo, document_repo.clone());
-    let attendance_service =
-        AttendanceService::new(attendance_repo, StudentService::new(student_repo));
+    let student_group_service = StudentGroupService::new(student_group_repo);
+    let teacher_service = TeacherService::new(teacher_repo);
+    let attendance_service = AttendanceService::new(attendance_repo, student_service.clone());
     let document_service = DocumentService::new(document_repo);
 
     AppServices {

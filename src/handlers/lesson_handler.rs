@@ -8,7 +8,7 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use crate::{
     AppState,
     error::AppError,
-    logic::services::lesson_service::LessonService,
+    logic::services::{attendance_service::AttendanceService, lesson_service::LessonService},
     models::{
         attendance::Attendance,
         lesson::{LessonWithRelations, NewLesson, UpdateLesson},
@@ -24,7 +24,7 @@ pub fn router() -> OpenApiRouter<AppState> {
             update_lesson,
             delete_lesson
         ))
-        .routes(routes!(get_atttendances_for_lesson));
+        .routes(routes!(get_attendances_for_lesson));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
@@ -49,12 +49,12 @@ async fn get_lesson(
 }
 
 #[utoipa::path(get, path = "/{id}/attendances", params(("id" = i32, Path, description = "ID урока для которого запрашваются посещения")))]
-async fn get_atttendances_for_lesson(
-    State(lesson_service): State<LessonService>,
+async fn get_attendances_for_lesson(
+    State(attendace_service): State<AttendanceService>,
     Path(lesson_id): Path<i32>,
 ) -> Result<Json<Vec<Attendance>>, AppError> {
     info!("Getting attendances for lesson");
-    let attendances = lesson_service.get_attendances(lesson_id)?;
+    let attendances = attendace_service.get_by_lesson_id(lesson_id)?;
     Ok(Json(attendances))
 }
 

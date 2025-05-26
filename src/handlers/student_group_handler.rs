@@ -11,7 +11,7 @@ use crate::{
     logic::services::{lesson_service::LessonService, student_group_service::StudentGroupService},
     models::{
         lesson::{Lesson, LessonWithRelations, NewLesson},
-        student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+        student_group::{NewStudentGroup, StudentGroupWithRelations, UpdateStudentGroup},
     },
 };
 
@@ -34,7 +34,7 @@ pub fn router() -> OpenApiRouter<AppState> {
 async fn create_student_group(
     State(student_group_service): State<StudentGroupService>,
     Json(new_student_group): Json<NewStudentGroup>,
-) -> Result<Json<StudentGroup>, AppError> {
+) -> Result<Json<StudentGroupWithRelations>, AppError> {
     info!("Creating new student group");
     let new_student_group = student_group_service.create(new_student_group)?;
     Ok(Json(new_student_group))
@@ -64,7 +64,7 @@ async fn create_lesson_for_student_group(
 async fn get_student_group(
     State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
-) -> Result<Json<StudentGroup>, AppError> {
+) -> Result<Json<StudentGroupWithRelations>, AppError> {
     info!("Getting student group");
     let student_group = student_group_service.get(student_group_id)?;
     Ok(Json(student_group))
@@ -76,11 +76,11 @@ async fn get_student_group(
     params(("id" = i32, Path, description = "ID группы учеников для которой запрашиваем уроки"))
 )]
 async fn get_lessons_for_student_group(
-    State(student_group_service): State<StudentGroupService>,
+    State(lessons_service): State<LessonService>,
     Path(student_group_id): Path<i32>,
 ) -> Result<Json<Vec<Lesson>>, AppError> {
     info!("Getting lessons for student group");
-    let lessons = student_group_service.get_lessons(student_group_id)?;
+    let lessons = lessons_service.get_lessons_by_group_id(student_group_id)?;
     Ok(Json(lessons))
 }
 
@@ -94,7 +94,7 @@ async fn update_student_group(
     State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
     Json(update_student_group): Json<UpdateStudentGroup>,
-) -> Result<Json<StudentGroup>, AppError> {
+) -> Result<Json<StudentGroupWithRelations>, AppError> {
     info!("Updating student group");
     let updated_student_group =
         student_group_service.update(student_group_id, update_student_group)?;

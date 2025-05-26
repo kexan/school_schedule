@@ -8,10 +8,7 @@ use crate::{
         repositories::lesson_repository::LessonRepository,
         services::attendance_service::AttendanceService,
     },
-    models::{
-        attendance::Attendance,
-        lesson::{LessonWithRelations, NewLesson, UpdateLesson},
-    },
+    models::lesson::{Lesson, LessonWithRelations, NewLesson, UpdateLesson},
 };
 
 #[derive(Clone)]
@@ -29,29 +26,30 @@ impl LessonService {
     }
 
     pub fn create(&self, new_lesson: NewLesson) -> Result<LessonWithRelations, AppError> {
-        //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
-        let lesson_response = self.lesson_repository.create(new_lesson)?;
-        if let Some(student_group_id) = lesson_response.lesson.student_group_id {
+        let lesson_full = self.lesson_repository.create(new_lesson)?;
+        if let Some(student_group_id) = lesson_full.lesson.student_group_id {
             self.attendance_service
-                .create_attendances_for_group(lesson_response.lesson.id, student_group_id)?;
+                .create_attendances_for_group(lesson_full.lesson.id, student_group_id)?;
         }
         info!(
             "Successfully created lesson with ID {}",
-            lesson_response.lesson.id
+            lesson_full.lesson.id
         );
-        Ok(lesson_response)
+        Ok(lesson_full)
     }
 
     pub fn get(&self, lesson_id: i32) -> Result<LessonWithRelations, AppError> {
-        let lesson_response = self.lesson_repository.get(lesson_id)?;
+        let lesson = self.lesson_repository.get(lesson_id)?;
         info!("Lesson with ID {} successfully get", lesson_id);
-        Ok(lesson_response)
+        Ok(lesson)
     }
 
-    pub fn get_attendances(&self, lesson_id: i32) -> Result<Vec<Attendance>, AppError> {
-        let attendances = self.attendance_service.get_by_lesson_id(lesson_id)?;
-        info!("Got attendances for lesson with ID {}", lesson_id);
-        Ok(attendances)
+    pub fn get_lessons_by_group_id(&self, student_group_id: i32) -> Result<Vec<Lesson>, AppError> {
+        let lessons = self
+            .lesson_repository
+            .get_lessons_by_group_id(student_group_id)?;
+        info!("Got lessons for group with ID {}", student_group_id);
+        Ok(lessons)
     }
 
     pub fn update(
@@ -59,9 +57,8 @@ impl LessonService {
         lesson_id: i32,
         update_lesson: UpdateLesson,
     ) -> Result<LessonWithRelations, AppError> {
-        //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
-        let lesson_response = self.lesson_repository.get(lesson_id)?;
-        if lesson_response.lesson.student_group_id != update_lesson.student_group_id {
+        let lesson = self.lesson_repository.get(lesson_id)?.lesson;
+        if lesson.student_group_id != update_lesson.student_group_id {
             self.attendance_service.delete_by_lesson_id(lesson_id)?;
 
             if let Some(student_group_id) = update_lesson.student_group_id {
