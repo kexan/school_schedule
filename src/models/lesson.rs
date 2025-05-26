@@ -18,7 +18,7 @@ pub struct Lesson {
     pub student_group_id: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct LessonWithRelations {
     #[serde(flatten)]
     pub lesson: Lesson,

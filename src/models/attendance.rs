@@ -23,7 +23,7 @@ pub struct Attendance {
     pub skip_reason: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct AttendanceWithRelations {
     #[serde(flatten)]
     pub attendance: Attendance,

@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 use crate::models::teacher::Teacher;
 use crate::schema::student_groups;
 
-#[derive(Serialize, Deserialize, Selectable, Identifiable, Associations, Queryable)]
+#[derive(Serialize, Deserialize, Selectable, Identifiable, Associations, Queryable, ToSchema)]
 #[diesel(belongs_to(Teacher))]
 pub struct StudentGroup {
     pub id: i32,
@@ -18,7 +18,7 @@ pub struct StudentGroup {
     pub teacher_id: Option<i32>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct StudentGroupWithRelations {
     #[serde(flatten)]
     pub student_group: StudentGroup,
