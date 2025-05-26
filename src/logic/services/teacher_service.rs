@@ -1,6 +1,8 @@
+use axum::extract::FromRef;
 use tracing::info;
 
 use crate::{
+    AppState,
     error::AppError,
     logic::repositories::{
         document_repository::DocumentRepository, teacher_repository::TeacherRepository,
@@ -66,5 +68,11 @@ impl TeacherService {
             info!("Teacher with ID {} not found", teacher_id);
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for TeacherService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.teacher_service.clone()
     }
 }

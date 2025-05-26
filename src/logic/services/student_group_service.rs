@@ -1,6 +1,8 @@
+use axum::extract::FromRef;
 use tracing::{info, warn};
 
 use crate::{
+    AppState,
     error::AppError,
     logic::repositories::{
         lesson_repository::LessonRepository, student_group_repository::StudentGroupRepository,
@@ -82,5 +84,11 @@ impl StudentGroupService {
             warn!("Student group with ID {} not found", student_group_id);
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for StudentGroupService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.student_group_service.clone()
     }
 }

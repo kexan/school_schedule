@@ -1,6 +1,8 @@
+use axum::extract::FromRef;
 use tracing::{info, warn};
 
 use crate::{
+    AppState,
     error::AppError,
     logic::{
         repositories::attendance_repository::AttendanceRepository,
@@ -116,5 +118,11 @@ impl AttendanceService {
             warn!("Not found attendances for lesson {}", lesson_id);
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for AttendanceService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.attendance_service.clone()
     }
 }

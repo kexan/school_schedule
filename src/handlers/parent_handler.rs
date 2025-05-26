@@ -6,13 +6,13 @@ use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    AppServices,
+    AppState,
     error::AppError,
+    logic::services::parent_service::ParentService,
     models::parent::{NewParent, Parent, UpdateParent},
 };
 
-pub fn router() -> OpenApiRouter<AppServices> {
-    //TODO: добавить пермишены
+pub fn router() -> OpenApiRouter<AppState> {
     let dont_need_permissions = OpenApiRouter::new().routes(routes!(
         create_parent,
         get_parent,
@@ -24,7 +24,7 @@ pub fn router() -> OpenApiRouter<AppServices> {
 
 #[utoipa::path(post, path = "/", request_body = NewParent)]
 async fn create_parent(
-    State(AppServices { parent_service, .. }): State<AppServices>,
+    State(parent_service): State<ParentService>,
     Json(new_parent): Json<NewParent>,
 ) -> Result<Json<Parent>, AppError> {
     info!("Creating new parent");
@@ -34,7 +34,7 @@ async fn create_parent(
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого родителя")))]
 async fn get_parent(
-    State(AppServices { parent_service, .. }): State<AppServices>,
+    State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
 ) -> Result<Json<Parent>, AppError> {
     info!("Getting parent");
@@ -44,7 +44,7 @@ async fn get_parent(
 
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Родителя которого требуется обновить")), request_body = UpdateParent)]
 async fn update_parent(
-    State(AppServices { parent_service, .. }): State<AppServices>,
+    State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
     Json(update_parent): Json<UpdateParent>,
 ) -> Result<Json<Parent>, AppError> {
@@ -55,7 +55,7 @@ async fn update_parent(
 
 #[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Родителя которого требуется удалить")))]
 async fn delete_parent(
-    State(AppServices { parent_service, .. }): State<AppServices>,
+    State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
 ) -> Result<Json<String>, AppError> {
     info!("Deleting parent");

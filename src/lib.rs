@@ -1,4 +1,3 @@
-use axum::extract::FromRef;
 use logic::services::{
     attendance_service::AttendanceService, document_service::DocumentService,
     lesson_service::LessonService, parent_service::ParentService,
@@ -16,10 +15,10 @@ pub mod schema;
 
 #[derive(Clone)]
 pub struct AppState {
-    services: AppServices,
+    pub services: AppServices,
 }
 
-#[derive(Clone, FromRef)]
+#[derive(Clone)]
 pub struct AppServices {
     pub lesson_service: LessonService,
     pub parent_service: ParentService,

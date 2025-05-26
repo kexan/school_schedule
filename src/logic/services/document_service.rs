@@ -4,11 +4,12 @@ use std::{
     path::Path,
 };
 
-use axum::extract::Multipart;
+use axum::extract::{FromRef, Multipart};
 use tracing::info;
 use uuid::Uuid;
 
 use crate::{
+    AppState,
     error::AppError,
     logic::repositories::document_repository::DocumentRepository,
     models::document::{Document, NewDocument},
@@ -119,5 +120,11 @@ impl DocumentService {
             info!("File at {} not found", full_path.display());
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for DocumentService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.document_service.clone()
     }
 }

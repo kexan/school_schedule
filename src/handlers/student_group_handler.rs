@@ -6,16 +6,16 @@ use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    AppServices,
+    AppState,
     error::AppError,
+    logic::services::{lesson_service::LessonService, student_group_service::StudentGroupService},
     models::{
         lesson::{Lesson, LessonWithRelations, NewLesson},
         student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
     },
 };
 
-pub fn router() -> OpenApiRouter<AppServices> {
-    //TODO: добавить пермишены
+pub fn router() -> OpenApiRouter<AppState> {
     let dont_need_permissions = OpenApiRouter::new()
         .routes(routes!(
             create_student_group,
@@ -32,10 +32,7 @@ pub fn router() -> OpenApiRouter<AppServices> {
 
 #[utoipa::path(post, path = "/", request_body = NewStudentGroup)]
 async fn create_student_group(
-    State(AppServices {
-        student_group_service,
-        ..
-    }): State<AppServices>,
+    State(student_group_service): State<StudentGroupService>,
     Json(new_student_group): Json<NewStudentGroup>,
 ) -> Result<Json<StudentGroup>, AppError> {
     info!("Creating new student group");
@@ -50,7 +47,7 @@ async fn create_student_group(
     request_body = NewLesson
 )]
 async fn create_lesson_for_student_group(
-    State(AppServices { lesson_service, .. }): State<AppServices>,
+    State(lesson_service): State<LessonService>,
     Path(student_group_id): Path<i32>,
     Json(mut new_lesson): Json<NewLesson>,
 ) -> Result<Json<LessonWithRelations>, AppError> {
@@ -65,10 +62,7 @@ async fn create_lesson_for_student_group(
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемой группы учеников")))]
 async fn get_student_group(
-    State(AppServices {
-        student_group_service,
-        ..
-    }): State<AppServices>,
+    State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
 ) -> Result<Json<StudentGroup>, AppError> {
     info!("Getting student group");
@@ -82,10 +76,7 @@ async fn get_student_group(
     params(("id" = i32, Path, description = "ID группы учеников для которой запрашиваем уроки"))
 )]
 async fn get_lessons_for_student_group(
-    State(AppServices {
-        student_group_service,
-        ..
-    }): State<AppServices>,
+    State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
 ) -> Result<Json<Vec<Lesson>>, AppError> {
     info!("Getting lessons for student group");
@@ -100,10 +91,7 @@ async fn get_lessons_for_student_group(
     request_body = UpdateStudentGroup
 )]
 async fn update_student_group(
-    State(AppServices {
-        student_group_service,
-        ..
-    }): State<AppServices>,
+    State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
     Json(update_student_group): Json<UpdateStudentGroup>,
 ) -> Result<Json<StudentGroup>, AppError> {
@@ -115,10 +103,7 @@ async fn update_student_group(
 
 #[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Группы учеников которую требуется удалить")))]
 async fn delete_student_group(
-    State(AppServices {
-        student_group_service,
-        ..
-    }): State<AppServices>,
+    State(student_group_service): State<StudentGroupService>,
     Path(student_group_id): Path<i32>,
 ) -> Result<Json<String>, AppError> {
     info!("Deleting student group");

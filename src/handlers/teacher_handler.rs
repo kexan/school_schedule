@@ -7,15 +7,16 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use uuid::Uuid;
 
 use crate::{
-    AppServices,
+    AppState,
     error::AppError,
+    logic::services::{document_service::DocumentService, teacher_service::TeacherService},
     models::{
         document::{Document, DocumentFileForm},
         teacher::{NewTeacher, Teacher, UpdateTeacher},
     },
 };
 
-pub fn router() -> OpenApiRouter<AppServices> {
+pub fn router() -> OpenApiRouter<AppState> {
     //TODO: добавить пермишены
     let dont_need_permissions = OpenApiRouter::new()
         .routes(routes!(
@@ -34,9 +35,7 @@ pub fn router() -> OpenApiRouter<AppServices> {
 
 #[utoipa::path(post, path = "/", request_body = NewTeacher)]
 async fn create_teacher(
-    State(AppServices {
-        teacher_service, ..
-    }): State<AppServices>,
+    State(teacher_service): State<TeacherService>,
     Json(new_teacher): Json<NewTeacher>,
 ) -> Result<Json<Teacher>, AppError> {
     info!("Creating new teacher");
@@ -51,9 +50,7 @@ async fn create_teacher(
     request_body(content_type = "multipart/form-data", content = DocumentFileForm, description = "Загружаемый документ")
 )]
 async fn upload_document(
-    State(AppServices {
-        document_service, ..
-    }): State<AppServices>,
+    State(document_service): State<DocumentService>,
     Path(teacher_id): Path<i32>,
     multipart: Multipart,
 ) -> Result<Json<Document>, AppError> {
@@ -64,9 +61,7 @@ async fn upload_document(
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого учителя")))]
 async fn get_teacher(
-    State(AppServices {
-        teacher_service, ..
-    }): State<AppServices>,
+    State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
 ) -> Result<Json<Teacher>, AppError> {
     info!("Getting teacher with ID {}", teacher_id);
@@ -76,9 +71,7 @@ async fn get_teacher(
 
 #[utoipa::path(get, path = "/{id}/documents", params(("id" = i32, Path, description = "ID учителя у которого запрашиваются документы")))]
 async fn get_teacher_documents(
-    State(AppServices {
-        teacher_service, ..
-    }): State<AppServices>,
+    State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
 ) -> Result<Json<Vec<Document>>, AppError> {
     info!("Getting documents for teacher with ID {}", teacher_id);
@@ -88,9 +81,7 @@ async fn get_teacher_documents(
 
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Учителя которого требуется обновить")), request_body = UpdateTeacher)]
 async fn update_teacher(
-    State(AppServices {
-        teacher_service, ..
-    }): State<AppServices>,
+    State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
     Json(update_teacher): Json<UpdateTeacher>,
 ) -> Result<Json<Teacher>, AppError> {
@@ -101,9 +92,7 @@ async fn update_teacher(
 
 #[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Учителя которого требуется удалить")))]
 async fn delete_teacher(
-    State(AppServices {
-        teacher_service, ..
-    }): State<AppServices>,
+    State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
 ) -> Result<Json<String>, AppError> {
     info!("Deleting teacher with ID {}", teacher_id);
@@ -127,9 +116,7 @@ async fn delete_teacher(
     )
 )]
 async fn delete_document(
-    State(AppServices {
-        document_service, ..
-    }): State<AppServices>,
+    State(document_service): State<DocumentService>,
     Path((teacher_id, document_id)): Path<(i32, Uuid)>,
 ) -> Result<Json<String>, AppError> {
     info!(

@@ -1,7 +1,6 @@
-use axum::extract::FromRef;
 use axum_login::tower_sessions::SessionManagerLayer;
 use dotenvy::dotenv;
-use school_schedule::{db, handlers, open_api::ApiDoc};
+use school_schedule::{AppState, db, handlers, logic::services, open_api::ApiDoc};
 use std::io::Error;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
@@ -28,6 +27,8 @@ async fn main() -> Result<(), Error> {
 
     let postgres_pool = db::establish_postgres_connection();
     db::run_db_migrations(&postgres_pool);
+    let services = services::init_app_services(postgres_pool);
+    let state = AppState { services };
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/api/v1/students", handlers::student_handler::router())
@@ -39,7 +40,7 @@ async fn main() -> Result<(), Error> {
         .nest("/api/v1/teachers", handlers::teacher_handler::router())
         .nest("/api/v1/lessons", handlers::lesson_handler::router())
         .layer(TraceLayer::new_for_http())
-        .with_state(postgres_pool)
+        .with_state(state)
         .split_for_parts();
 
     let router = router.merge(SwaggerUi::new("/swagger").url("/apidoc/openapi.json", open_api));

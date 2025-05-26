@@ -1,6 +1,8 @@
+use axum::extract::FromRef;
 use tracing::{info, warn};
 
 use crate::{
+    AppState,
     error::AppError,
     logic::repositories::parent_repository::ParentRepository,
     models::parent::{NewParent, Parent, UpdateParent},
@@ -44,5 +46,11 @@ impl ParentService {
             warn!("Parent with ID {} not found", parent_id);
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for ParentService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.parent_service.clone()
     }
 }

@@ -6,13 +6,13 @@ use tracing::info;
 use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
-    AppServices,
+    AppState,
     error::AppError,
+    logic::services::student_service::StudentService,
     models::student::{NewStudent, Student, UpdateStudent},
 };
 
-pub fn router() -> OpenApiRouter<AppServices> {
-    //TODO: добавить пермишены
+pub fn router() -> OpenApiRouter<AppState> {
     let dont_need_permissions = OpenApiRouter::new().routes(routes!(
         create_student,
         get_student,
@@ -24,9 +24,7 @@ pub fn router() -> OpenApiRouter<AppServices> {
 
 #[utoipa::path(post, path = "/", request_body = NewStudent)]
 async fn create_student(
-    State(AppServices {
-        student_service, ..
-    }): State<AppServices>,
+    State(student_service): State<StudentService>,
     Json(new_student): Json<NewStudent>,
 ) -> Result<Json<Student>, AppError> {
     info!("Creating new student");
@@ -36,9 +34,7 @@ async fn create_student(
 
 #[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого ученика")))]
 async fn get_student(
-    State(AppServices {
-        student_service, ..
-    }): State<AppServices>,
+    State(student_service): State<StudentService>,
     Path(student_id): Path<i32>,
 ) -> Result<Json<Student>, AppError> {
     info!("Getting student");
@@ -48,9 +44,7 @@ async fn get_student(
 
 #[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется обновить")), request_body = UpdateStudent)]
 async fn update_student(
-    State(AppServices {
-        student_service, ..
-    }): State<AppServices>,
+    State(student_service): State<StudentService>,
     Path(student_id): Path<i32>,
     Json(update_student): Json<UpdateStudent>,
 ) -> Result<Json<Student>, AppError> {
@@ -61,9 +55,7 @@ async fn update_student(
 
 #[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Ученика которого требуется удалить")))]
 async fn delete_student(
-    State(AppServices {
-        student_service, ..
-    }): State<AppServices>,
+    State(student_service): State<StudentService>,
     Path(student_id): Path<i32>,
 ) -> Result<Json<String>, AppError> {
     info!("Deleting student");
