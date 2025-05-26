@@ -1,47 +1,41 @@
 use tracing::{info, warn};
 
 use crate::{
-    db::{self, PostgresPool},
     error::AppError,
     logic::repositories::parent_repository::ParentRepository,
     models::parent::{NewParent, Parent, UpdateParent},
 };
 
-pub struct ParentService;
+#[derive(Clone)]
+pub struct ParentService {
+    parent_repository: ParentRepository,
+}
 
 impl ParentService {
-    pub fn create(postgres_pool: &PostgresPool, new_parent: NewParent) -> Result<Parent, AppError> {
-        let parent = db::with_connection(postgres_pool, |connection| {
-            ParentRepository::create(connection, new_parent)
-        })?;
+    pub fn new(parent_repository: ParentRepository) -> Self {
+        Self { parent_repository }
+    }
+
+    pub fn create(&self, new_parent: NewParent) -> Result<Parent, AppError> {
+        let parent = self.parent_repository.create(new_parent)?;
         info!("Successfully created parent with ID {}", parent.id);
         Ok(parent)
     }
 
-    pub fn get(postgres_pool: &PostgresPool, parent_id: i32) -> Result<Parent, AppError> {
-        let parent = db::with_connection(postgres_pool, |connection| {
-            ParentRepository::get(connection, parent_id)
-        })?;
+    pub fn get(&self, parent_id: i32) -> Result<Parent, AppError> {
+        let parent = self.parent_repository.get(parent_id)?;
         info!("Parent with ID {} successfully get", parent_id);
         Ok(parent)
     }
 
-    pub fn update(
-        postgres_pool: &PostgresPool,
-        parent_id: i32,
-        update_parent: UpdateParent,
-    ) -> Result<Parent, AppError> {
-        let updated_parent = db::with_connection(postgres_pool, |connection| {
-            ParentRepository::update(connection, parent_id, update_parent)
-        })?;
+    pub fn update(&self, parent_id: i32, update_parent: UpdateParent) -> Result<Parent, AppError> {
+        let updated_parent = self.parent_repository.update(parent_id, update_parent)?;
         info!("Parent with ID {} was successfully updated", parent_id);
         Ok(updated_parent)
     }
 
-    pub fn delete(postgres_pool: &PostgresPool, parent_id: i32) -> Result<bool, AppError> {
-        let deleted_count = db::with_connection(postgres_pool, |connection| {
-            ParentRepository::delete(connection, parent_id)
-        })?;
+    pub fn delete(&self, parent_id: i32) -> Result<bool, AppError> {
+        let deleted_count = self.parent_repository.delete(parent_id)?;
 
         if deleted_count > 0 {
             info!("Parent with ID {} was successfully deleted", parent_id);

@@ -30,11 +30,8 @@ impl LessonService {
         //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
         let lesson_response = self.lesson_repository.create(new_lesson)?;
         if let Some(student_group_id) = lesson_response.lesson.student_group_id {
-            AttendanceService::create_attendances_for_group(
-                postgres_pool,
-                lesson_response.lesson.id,
-                student_group_id,
-            )?;
+            self.attendance_service
+                .create_attendances_for_group(lesson_response.lesson.id, student_group_id)?;
         }
         info!(
             "Successfully created lesson with ID {}",
@@ -63,14 +60,11 @@ impl LessonService {
         //TODO: вот это бы надо переделать чтобы оно все выполнялось в рамках одной транзакции
         let lesson_response = self.lesson_repository.get(lesson_id)?;
         if lesson_response.lesson.student_group_id != update_lesson.student_group_id {
-            AttendanceService::delete_by_lesson_id(postgres_pool, lesson_id)?;
+            self.attendance_service.delete_by_lesson_id(lesson_id)?;
 
             if let Some(student_group_id) = update_lesson.student_group_id {
-                AttendanceService::create_attendances_for_group(
-                    postgres_pool,
-                    lesson_id,
-                    student_group_id,
-                )?;
+                self.attendance_service
+                    .create_attendances_for_group(lesson_id, student_group_id)?;
             }
         }
 
