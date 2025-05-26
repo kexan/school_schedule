@@ -9,6 +9,7 @@ use crate::{
 
 use super::student_service::StudentService;
 
+#[derive(Clone)]
 pub struct AttendanceService;
 
 impl AttendanceService {

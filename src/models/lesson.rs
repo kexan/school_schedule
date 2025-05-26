@@ -14,7 +14,15 @@ pub struct Lesson {
     pub id: i32,
     pub topic: String,
     pub scheduled_at: NaiveDate,
+    #[serde(skip_serializing)]
     pub student_group_id: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LessonWithRelations {
+    #[serde(flatten)]
+    pub lesson: Lesson,
+    pub student_group: Option<StudentGroup>,
 }
 
 #[derive(Insertable, AsChangeset, ToSchema, Deserialize)]

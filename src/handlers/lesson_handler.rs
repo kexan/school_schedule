@@ -11,7 +11,7 @@ use crate::{
     logic::services::lesson_service::LessonService,
     models::{
         attendance::Attendance,
-        lesson::{Lesson, NewLesson, UpdateLesson},
+        lesson::{LessonWithRelations, NewLesson, UpdateLesson},
     },
 };
 
@@ -30,9 +30,9 @@ pub fn router() -> OpenApiRouter<PostgresPool> {
 
 #[utoipa::path(post, path = "/", request_body = NewLesson)]
 async fn create_lesson(
-    State(postgres_pool): State<PostgresPool>,
+    State(services): State,
     Json(new_lesson): Json<NewLesson>,
-) -> Result<Json<Lesson>, AppError> {
+) -> Result<Json<LessonWithRelations>, AppError> {
     info!("Creating new lesson");
     let new_lesson = LessonService::create(&postgres_pool, new_lesson)?;
     Ok(Json(new_lesson))
@@ -42,7 +42,7 @@ async fn create_lesson(
 async fn get_lesson(
     State(postgres_pool): State<PostgresPool>,
     Path(lesson_id): Path<i32>,
-) -> Result<Json<Lesson>, AppError> {
+) -> Result<Json<LessonWithRelations>, AppError> {
     info!("Getting lesson");
     let lesson = LessonService::get(&postgres_pool, lesson_id)?;
     Ok(Json(lesson))
@@ -63,7 +63,7 @@ async fn update_lesson(
     State(postgres_pool): State<PostgresPool>,
     Path(lesson_id): Path<i32>,
     Json(update_lesson): Json<UpdateLesson>,
-) -> Result<Json<Lesson>, AppError> {
+) -> Result<Json<LessonWithRelations>, AppError> {
     info!("Updating lesson");
     let updated_lesson = LessonService::update(&postgres_pool, lesson_id, update_lesson)?;
     Ok(Json(updated_lesson))

@@ -1,45 +1,52 @@
-use diesel::{QueryDsl, QueryResult, RunQueryDsl};
+use diesel::prelude::*;
 
-use crate::models::student_group::UpdateStudentGroup;
-use crate::schema::student_groups::dsl::student_groups;
 use crate::{
-    db::PostgresConnection,
-    models::student_group::{NewStudentGroup, StudentGroup},
+    db::PostgresPool,
+    error::AppError,
+    models::student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
+    schema::student_groups::{self},
 };
 
-pub struct StudentGroupRepository;
+#[derive(Clone)]
+pub struct StudentGroupRepository {
+    pool: PostgresPool,
+}
 
 impl StudentGroupRepository {
-    pub fn create(
-        connection: &mut PostgresConnection,
-        new_student_group: NewStudentGroup,
-    ) -> QueryResult<StudentGroup> {
-        diesel::insert_into(student_groups)
-            .values(new_student_group)
-            .get_result(connection)
+    pub fn new(pool: PostgresPool) -> Self {
+        Self { pool }
     }
 
-    pub fn get(
-        connection: &mut PostgresConnection,
-        student_group_id: i32,
-    ) -> QueryResult<StudentGroup> {
-        student_groups.find(student_group_id).first(connection)
+    pub fn create(&self, new_student_group: NewStudentGroup) -> Result<StudentGroup, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(diesel::insert_into(student_groups::table)
+            .values(new_student_group)
+            .get_result::<StudentGroup>(&mut connection)?)
+    }
+
+    pub fn get(&self, student_group_id: i32) -> Result<StudentGroup, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(student_groups::table
+            .find(student_group_id)
+            .first::<StudentGroup>(&mut connection)?)
     }
 
     pub fn update(
-        connection: &mut PostgresConnection,
+        &self,
         student_group_id: i32,
         updated_student_group: UpdateStudentGroup,
-    ) -> QueryResult<StudentGroup> {
-        diesel::update(student_groups.find(student_group_id))
+    ) -> Result<StudentGroup, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(diesel::update(student_groups::table.find(student_group_id))
             .set(&updated_student_group)
-            .get_result(connection)
+            .get_result::<StudentGroup>(&mut connection)?)
     }
 
-    pub fn delete(
-        connection: &mut PostgresConnection,
-        student_group_id: i32,
-    ) -> QueryResult<usize> {
-        diesel::delete(student_groups.find(student_group_id)).execute(connection)
+    pub fn delete(&self, student_group_id: i32) -> Result<usize, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(
+            diesel::delete(student_groups::table.find(student_group_id))
+                .execute(&mut connection)?,
+        )
     }
 }

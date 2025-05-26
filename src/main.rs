@@ -1,3 +1,4 @@
+use axum::extract::FromRef;
 use axum_login::tower_sessions::SessionManagerLayer;
 use dotenvy::dotenv;
 use school_schedule::{db, handlers, open_api::ApiDoc};

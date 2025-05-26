@@ -10,7 +10,7 @@ use crate::{
     error::AppError,
     logic::services::{lesson_service::LessonService, student_group_service::StudentGroupService},
     models::{
-        lesson::{Lesson, NewLesson},
+        lesson::{Lesson, LessonWithRelations, NewLesson},
         student_group::{NewStudentGroup, StudentGroup, UpdateStudentGroup},
     },
 };
@@ -46,7 +46,7 @@ async fn create_lesson_for_student_group(
     State(postgres_pool): State<PostgresPool>,
     Path(student_group_id): Path<i32>,
     Json(new_lesson): Json<NewLesson>,
-) -> Result<Json<Lesson>, AppError> {
+) -> Result<Json<LessonWithRelations>, AppError> {
     info!(
         "Creating new lesson for student group with ID {}",
         student_group_id

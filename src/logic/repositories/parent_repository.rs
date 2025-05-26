@@ -1,39 +1,45 @@
-use diesel::{QueryDsl, QueryResult, RunQueryDsl};
+use diesel::prelude::*;
 
-use crate::models::parent::UpdateParent;
-use crate::schema::parents::dsl::parents;
 use crate::{
-    db::PostgresConnection,
-    models::parent::{NewParent, Parent},
+    db::PostgresPool,
+    error::AppError,
+    models::parent::{NewParent, Parent, UpdateParent},
+    schema::parents::{self},
 };
 
-pub struct ParentRepository;
+#[derive(Clone)]
+pub struct ParentRepository {
+    pool: PostgresPool,
+}
 
 impl ParentRepository {
-    pub fn create(
-        connection: &mut PostgresConnection,
-        new_parent: NewParent,
-    ) -> QueryResult<Parent> {
-        diesel::insert_into(parents)
+    pub fn new(pool: PostgresPool) -> Self {
+        Self { pool }
+    }
+
+    pub fn create(&self, new_parent: NewParent) -> Result<Parent, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(diesel::insert_into(parents::table)
             .values(new_parent)
-            .get_result(connection)
+            .get_result::<Parent>(&mut connection)?)
     }
 
-    pub fn get(connection: &mut PostgresConnection, parent_id: i32) -> QueryResult<Parent> {
-        parents.find(parent_id).first(connection)
+    pub fn get(&self, parent_id: i32) -> Result<Parent, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(parents::table
+            .find(parent_id)
+            .first::<Parent>(&mut connection)?)
     }
 
-    pub fn update(
-        connection: &mut PostgresConnection,
-        parent_id: i32,
-        updated_parent: UpdateParent,
-    ) -> QueryResult<Parent> {
-        diesel::update(parents.find(parent_id))
+    pub fn update(&self, parent_id: i32, updated_parent: UpdateParent) -> Result<Parent, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(diesel::update(parents::table.find(parent_id))
             .set(&updated_parent)
-            .get_result(connection)
+            .get_result::<Parent>(&mut connection)?)
     }
 
-    pub fn delete(connection: &mut PostgresConnection, parent_id: i32) -> QueryResult<usize> {
-        diesel::delete(parents.find(parent_id)).execute(connection)
+    pub fn delete(&self, parent_id: i32) -> Result<usize, AppError> {
+        let mut connection = self.pool.get()?;
+        Ok(diesel::delete(parents::table.find(parent_id)).execute(&mut connection)?)
     }
 }
