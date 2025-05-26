@@ -18,8 +18,18 @@ pub struct Student {
     pub id: i32,
     pub name: String,
     pub birth_date: NaiveDate,
+    #[serde(skip_serializing)]
     pub parent_id: Option<i32>,
+    #[serde(skip_serializing)]
     pub student_group_id: Option<i32>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct StudentWithRelations {
+    #[serde(flatten)]
+    pub student: Student,
+    pub parent: Option<Parent>,
+    pub student_group: Option<StudentGroup>,
 }
 
 #[derive(Insertable, AsChangeset, ToSchema, Deserialize)]

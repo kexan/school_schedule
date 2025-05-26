@@ -15,10 +15,20 @@ use crate::{
 #[diesel(belongs_to(Student))]
 pub struct Attendance {
     pub id: i32,
+    #[serde(skip_serializing)]
     pub student_id: i32,
+    #[serde(skip_serializing)]
     pub lesson_id: i32,
     pub is_present: bool,
     pub skip_reason: Option<String>,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AttendanceWithRelations {
+    #[serde(flatten)]
+    pub attendance: Attendance,
+    pub student: Student,
+    pub lesson: Lesson,
 }
 
 #[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
