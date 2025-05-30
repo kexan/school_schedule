@@ -9,8 +9,6 @@ use tower_sessions_redis_store::fred::prelude::{
     Config, ConnectionConfig, PerformanceConfig, ReconnectPolicy,
 };
 
-use crate::error::AppError;
-
 const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
 pub type PostgresPool = Pool<ConnectionManager<PgConnection>>;
@@ -43,13 +41,4 @@ pub fn run_db_migrations(pool: &PostgresPool) {
     connection
         .run_pending_migrations(MIGRATIONS)
         .expect("Failed to run migrations");
-}
-
-pub fn with_connection<T, E, F>(pool: &PostgresPool, f: F) -> Result<T, AppError>
-where
-    F: FnOnce(&mut PooledConnection<ConnectionManager<diesel::PgConnection>>) -> Result<T, E>,
-    E: Into<AppError>,
-{
-    let mut connection = pool.get()?;
-    f(&mut connection).map_err(Into::into)
 }
