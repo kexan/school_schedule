@@ -33,11 +33,7 @@ impl AttendanceRepository {
             .returning(attendances::id)
             .get_result::<i32>(&mut connection)?;
 
-        let query = attendances::table
-            .filter(attendances::id.eq(new_attendance_id))
-            .into_boxed();
-
-        single_result(self.load_with_relations(query)?)
+        self.get(new_attendance_id)
     }
 
     pub fn batch_create(
@@ -87,11 +83,7 @@ impl AttendanceRepository {
             .set(&updated_attendance)
             .execute(&mut connection)?;
 
-        let query = attendances::table
-            .filter(attendances::id.eq(attendance_id))
-            .into_boxed();
-
-        single_result(self.load_with_relations(query)?)
+        self.get(attendance_id)
     }
 
     pub fn delete(&self, attendance_id: i32) -> Result<usize, AppError> {

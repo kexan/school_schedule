@@ -30,11 +30,7 @@ impl LessonRepository {
             .returning(lessons::id)
             .get_result::<i32>(&mut connection)?;
 
-        let query = lessons::table
-            .filter(lessons::id.eq(lesson_id))
-            .into_boxed();
-
-        single_result(self.load_with_relations(query)?)
+        self.get(lesson_id)
     }
 
     pub fn get(&self, lesson_id: i32) -> Result<LessonWithRelations, AppError> {
@@ -63,11 +59,7 @@ impl LessonRepository {
             .set(&updated_lesson)
             .execute(&mut connection)?;
 
-        let query = lessons::table
-            .filter(lessons::id.eq(lesson_id))
-            .into_boxed();
-
-        single_result(self.load_with_relations(query)?)
+        self.get(lesson_id)
     }
 
     pub fn delete(&self, lesson_id: i32) -> Result<usize, AppError> {

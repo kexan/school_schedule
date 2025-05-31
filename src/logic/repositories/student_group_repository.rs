@@ -15,6 +15,8 @@ use crate::{
     },
 };
 
+use super::single_result;
+
 #[derive(Clone)]
 pub struct StudentGroupRepository {
     pool: PostgresPool,
@@ -34,28 +36,16 @@ impl StudentGroupRepository {
             .values(&new_student_group)
             .returning(student_groups::id)
             .get_result::<i32>(&mut connection)?;
-        let (student_group, teacher) = student_groups::table
-            .left_join(teachers::table)
-            .filter(student_groups::id.eq(student_group_id))
-            .select((StudentGroup::as_select(), Option::<Teacher>::as_select()))
-            .first::<(StudentGroup, Option<Teacher>)>(&mut connection)?;
-        Ok(StudentGroupWithRelations {
-            student_group,
-            teacher,
-        })
+
+        self.get(student_group_id)
     }
 
     pub fn get(&self, student_group_id: i32) -> Result<StudentGroupWithRelations, AppError> {
-        let mut connection = self.pool.get()?;
-        let (student_group, teacher) = student_groups::table
-            .left_join(teachers::table)
+        let query = student_groups::table
             .filter(student_groups::id.eq(student_group_id))
-            .select((StudentGroup::as_select(), Option::<Teacher>::as_select()))
-            .first::<(StudentGroup, Option<Teacher>)>(&mut connection)?;
-        Ok(StudentGroupWithRelations {
-            student_group,
-            teacher,
-        })
+            .into_boxed();
+
+        single_result(self.load_with_relations(query)?)
     }
 
     pub fn update(
@@ -67,15 +57,8 @@ impl StudentGroupRepository {
         diesel::update(student_groups::table.find(student_group_id))
             .set(&updated_student_group)
             .execute(&mut connection)?;
-        let (student_group, teacher) = student_groups::table
-            .left_join(teachers::table)
-            .filter(student_groups::id.eq(student_group_id))
-            .select((StudentGroup::as_select(), Option::<Teacher>::as_select()))
-            .first::<(StudentGroup, Option<Teacher>)>(&mut connection)?;
-        Ok(StudentGroupWithRelations {
-            student_group,
-            teacher,
-        })
+
+        self.get(student_group_id)
     }
 
     pub fn delete(&self, student_group_id: i32) -> Result<usize, AppError> {
@@ -84,5 +67,24 @@ impl StudentGroupRepository {
             diesel::delete(student_groups::table.find(student_group_id))
                 .execute(&mut connection)?,
         )
+    }
+
+    fn load_with_relations(
+        &self,
+        query: student_groups::BoxedQuery<'_, diesel::pg::Pg>,
+    ) -> Result<Vec<StudentGroupWithRelations>, AppError> {
+        let mut connection = self.pool.get()?;
+        let results = query
+            .left_join(teachers::table)
+            .select((StudentGroup::as_select(), Option::<Teacher>::as_select()))
+            .load::<(StudentGroup, Option<Teacher>)>(&mut connection)?
+            .into_iter()
+            .map(|(student_group, teacher)| StudentGroupWithRelations {
+                student_group,
+                teacher,
+            })
+            .collect();
+
+        Ok(results)
     }
 }
