@@ -24,7 +24,32 @@ pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
-#[utoipa::path(post, path = "/", request_body = NewAttendance)]
+/// Создание нового посещения
+///
+/// Этот эндпоинт позволяет создать новое посещение в базе данных.
+///
+/// ### Входные данные:
+/// - `student_id`: ID студента (обязательное поле)
+/// - `lesson_id`: ID урока (обязательное поле)
+/// - `is_present`: Отметка о том, что студент присутствовал (обязательное поле, по умолчанию
+/// false)
+/// - `skip_reason`: Причина пропуска
+///
+/// ### Ответы:
+/// - **201 Created**: Посещение успешно создано. Возвращает данные созданного посещения.
+/// - **400 Bad Request**: Неверные входные данные (например, отсутствуют обязательные поля).
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    post,
+    path = "/",
+    request_body = NewAttendance,
+    responses(
+        (status = 201, body = AttendanceWithRelations, description = "Посещение успешно создано"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Attendance"
+)]
 async fn create_attendance(
     State(attendance_service): State<AttendanceService>,
     Json(new_attendance): Json<NewAttendance>,
@@ -34,7 +59,30 @@ async fn create_attendance(
     Ok(Json(created_attendance))
 }
 
-#[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого посещения")))]
+/// Получение посещения по ID
+///
+/// Этот эндпоинт позволяет получить данные конкретного посещения по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID посещения (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Данные посещения успешно получены.
+/// - **404 Not Found**: Посещение с указанным ID не найдено.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID запрашиваемого посещения")
+    ),
+    responses(
+        (status = 200, body = AttendanceWithRelations, description = "Данные посещения успешно получены"),
+        (status = 404, description = "Посещение не найдено"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Attendance"
+)]
 async fn get_attendance(
     State(attendance_service): State<AttendanceService>,
     Path(attendance_id): Path<i32>,
@@ -44,7 +92,30 @@ async fn get_attendance(
     Ok(Json(attendance))
 }
 
-#[utoipa::path(get, path = "/lesson/{lesson_id}", params(("lesson_id" = i32, Path, description = "ID урока для которого запрашиваются посещения")))]
+/// Получение всех посещений по ID урока
+///
+/// Этот эндпоинт позволяет получить список всех посещений, связанных с конкретным уроком.
+///
+/// ### Параметры:
+/// - `lesson_id`: ID урока (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Список посещений успешно получен.
+/// - **404 Not Found**: Урок с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    get,
+    path = "/lesson/{lesson_id}",
+    params(
+        ("lesson_id" = i32, Path, description = "ID урока для которого запрашиваются посещения")
+    ),
+    responses(
+        (status = 200, body = Vec<AttendanceWithRelations>, description = "Список посещений успешно получен"),
+        (status = 404, description = "Урок не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Attendance"
+)]
 async fn get_attendances_by_lesson(
     State(attendance_service): State<AttendanceService>,
     Path(lesson_id): Path<i32>,
@@ -54,7 +125,37 @@ async fn get_attendances_by_lesson(
     Ok(Json(attendances))
 }
 
-#[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID посещения которое требуется обновить")), request_body = UpdateAttendance)]
+/// Обновление существующего посещения
+///
+/// Этот эндпоинт позволяет обновить данные посещения по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID посещения (обязательный путь)
+///
+/// ### Входные данные:
+/// - `is_present`: Отметка о том, что студент присутствовал
+/// - `skip_reason`: Причина пропуска
+///
+/// ### Ответы:
+/// - **200 OK**: Данные посещения успешно обновлены.
+/// - **404 Not Found**: Посещение с указанным ID не найдено.
+/// - **400 Bad Request**: Неверные входные данные.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID посещения которое требуется обновить")
+    ),
+    request_body = UpdateAttendance,
+    responses(
+        (status = 200, body = AttendanceWithRelations, description = "Данные посещения успешно обновлены"),
+        (status = 404, description = "Посещение не найдено"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Attendance"
+)]
 async fn update_attendance(
     State(attendance_service): State<AttendanceService>,
     Path(attendance_id): Path<i32>,
@@ -65,7 +166,30 @@ async fn update_attendance(
     Ok(Json(updated_attendance))
 }
 
-#[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID посещения которое требуется удалить")))]
+/// Удаление посещения
+///
+/// Этот эндпоинт позволяет удалить существующее посещение по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID посещения (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Посещение успешно удалено.
+/// - **404 Not Found**: Посещение с указанным ID не найдено.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    delete,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID посещения которое требуется удалить")
+    ),
+    responses(
+        (status = 200, body = String, description = "Посещение успешно удалено"),
+        (status = 404, description = "Посещение не найдено"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Attendance"
+)]
 async fn delete_attendance(
     State(attendance_service): State<AttendanceService>,
     Path(attendance_id): Path<i32>,
