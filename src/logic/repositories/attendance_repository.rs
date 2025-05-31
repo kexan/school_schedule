@@ -1,11 +1,17 @@
-use diesel::prelude::*;
+use diesel::{pg::Pg, prelude::*};
 
 use crate::{
     db::PostgresPool,
     error::AppError,
-    models::attendance::{Attendance, NewAttendance, UpdateAttendance},
-    schema::attendances,
+    models::{
+        attendance::{Attendance, AttendanceWithRelations, NewAttendance, UpdateAttendance},
+        lesson::Lesson,
+        student::Student,
+    },
+    schema::{attendances, lessons, students},
 };
+
+use super::single_result;
 
 #[derive(Clone)]
 pub struct AttendanceRepository {
@@ -17,46 +23,75 @@ impl AttendanceRepository {
         Self { pool }
     }
 
-    pub fn create(&self, new_attendance: NewAttendance) -> Result<Attendance, AppError> {
+    pub fn create(
+        &self,
+        new_attendance: NewAttendance,
+    ) -> Result<AttendanceWithRelations, AppError> {
         let mut connection = self.pool.get()?;
-        Ok(diesel::insert_into(attendances::table)
-            .values(new_attendance)
-            .get_result::<Attendance>(&mut connection)?)
+        let new_attendance_id = diesel::insert_into(attendances::table)
+            .values(&new_attendance)
+            .returning(attendances::id)
+            .get_result::<i32>(&mut connection)?;
+
+        let query = attendances::table
+            .filter(attendances::id.eq(new_attendance_id))
+            .into_boxed();
+
+        single_result(self.load_with_relations(query)?)
     }
 
     pub fn batch_create(
         &self,
         new_attendances: Vec<NewAttendance>,
-    ) -> Result<Vec<Attendance>, AppError> {
+    ) -> Result<Vec<AttendanceWithRelations>, AppError> {
         let mut connection = self.pool.get()?;
-        Ok(diesel::insert_into(attendances::table)
-            .values(new_attendances)
-            .get_results::<Attendance>(&mut connection)?)
+
+        let inserted_ids: Vec<i32> = diesel::insert_into(attendances::table)
+            .values(&new_attendances)
+            .returning(attendances::id)
+            .get_results(&mut connection)?;
+
+        let query = attendances::table
+            .filter(attendances::id.eq_any(inserted_ids))
+            .into_boxed();
+
+        self.load_with_relations(query)
     }
 
-    pub fn get(&self, attendance_id: i32) -> Result<Attendance, AppError> {
-        let mut connection = self.pool.get()?;
-        Ok(attendances::table
-            .find(attendance_id)
-            .first::<Attendance>(&mut connection)?)
+    pub fn get(&self, attendance_id: i32) -> Result<AttendanceWithRelations, AppError> {
+        let query = attendances::table
+            .filter(attendances::id.eq(attendance_id))
+            .into_boxed();
+
+        single_result(self.load_with_relations(query)?)
     }
 
-    pub fn get_by_lesson_id(&self, lesson_id: i32) -> Result<Vec<Attendance>, AppError> {
-        let mut connection = self.pool.get()?;
-        Ok(attendances::table
+    pub fn get_by_lesson_id(
+        &self,
+        lesson_id: i32,
+    ) -> Result<Vec<AttendanceWithRelations>, AppError> {
+        let query = attendances::table
             .filter(attendances::lesson_id.eq(lesson_id))
-            .load::<Attendance>(&mut connection)?)
+            .into_boxed();
+
+        self.load_with_relations(query)
     }
 
     pub fn update(
         &self,
         attendance_id: i32,
         updated_attendance: UpdateAttendance,
-    ) -> Result<Attendance, AppError> {
+    ) -> Result<AttendanceWithRelations, AppError> {
         let mut connection = self.pool.get()?;
-        Ok(diesel::update(attendances::table.find(attendance_id))
+        diesel::update(attendances::table.find(attendance_id))
             .set(&updated_attendance)
-            .get_result::<Attendance>(&mut connection)?)
+            .execute(&mut connection)?;
+
+        let query = attendances::table
+            .filter(attendances::id.eq(attendance_id))
+            .into_boxed();
+
+        single_result(self.load_with_relations(query)?)
     }
 
     pub fn delete(&self, attendance_id: i32) -> Result<usize, AppError> {
@@ -70,5 +105,30 @@ impl AttendanceRepository {
             diesel::delete(attendances::table.filter(attendances::lesson_id.eq(lesson_id)))
                 .execute(&mut connection)?,
         )
+    }
+
+    fn load_with_relations(
+        &self,
+        query: attendances::BoxedQuery<'_, Pg>,
+    ) -> Result<Vec<AttendanceWithRelations>, AppError> {
+        let mut connection = self.pool.get()?;
+        let results = query
+            .inner_join(students::table)
+            .inner_join(lessons::table)
+            .select((
+                Attendance::as_select(),
+                Student::as_select(),
+                Lesson::as_select(),
+            ))
+            .load::<(Attendance, Student, Lesson)>(&mut connection)?
+            .into_iter()
+            .map(|(a, s, l)| AttendanceWithRelations {
+                attendance: a,
+                student: s,
+                lesson: l,
+            })
+            .collect();
+
+        Ok(results)
     }
 }
