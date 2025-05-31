@@ -39,6 +39,10 @@ async fn main() -> Result<(), Error> {
         .nest("/api/v1/parents", handlers::parent_handler::router())
         .nest("/api/v1/teachers", handlers::teacher_handler::router())
         .nest("/api/v1/lessons", handlers::lesson_handler::router())
+        .nest(
+            "/api/v1/attendances",
+            handlers::attendances_handler::router(),
+        )
         .layer(TraceLayer::new_for_http())
         .with_state(state)
         .split_for_parts();
