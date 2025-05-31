@@ -8,7 +8,7 @@ use crate::{
         repositories::attendance_repository::AttendanceRepository,
         services::student_service::StudentService,
     },
-    models::attendance::{Attendance, NewAttendance, UpdateAttendance},
+    models::attendance::{AttendanceWithRelations, NewAttendance, UpdateAttendance},
 };
 
 #[derive(Clone)]
@@ -28,17 +28,23 @@ impl AttendanceService {
         }
     }
 
-    pub fn create(&self, new_attendance: NewAttendance) -> Result<Attendance, AppError> {
-        let attendance = self.attendance_repository.create(new_attendance)?;
-        info!("Successfully created attendance with ID {}", attendance.id);
-        Ok(attendance)
+    pub fn create(
+        &self,
+        new_attendance: NewAttendance,
+    ) -> Result<AttendanceWithRelations, AppError> {
+        let attendance_full = self.attendance_repository.create(new_attendance)?;
+        info!(
+            "Successfully created attendance with ID {}",
+            attendance_full.attendance.id
+        );
+        Ok(attendance_full)
     }
 
     pub fn create_attendances_for_group(
         &self,
         lesson_id: i32,
         student_group_id: i32,
-    ) -> Result<Vec<Attendance>, AppError> {
+    ) -> Result<Vec<AttendanceWithRelations>, AppError> {
         let students = self
             .student_service
             .get_students_from_group(student_group_id)?;
@@ -63,13 +69,16 @@ impl AttendanceService {
         Ok(attendances)
     }
 
-    pub fn get(&self, attendance_id: i32) -> Result<Attendance, AppError> {
+    pub fn get(&self, attendance_id: i32) -> Result<AttendanceWithRelations, AppError> {
         let attendance = self.attendance_repository.get(attendance_id)?;
         info!("Attendance with ID {} successfully get", attendance_id);
         Ok(attendance)
     }
 
-    pub fn get_by_lesson_id(&self, lesson_id: i32) -> Result<Vec<Attendance>, AppError> {
+    pub fn get_by_lesson_id(
+        &self,
+        lesson_id: i32,
+    ) -> Result<Vec<AttendanceWithRelations>, AppError> {
         let attendances = self.attendance_repository.get_by_lesson_id(lesson_id)?;
         info!("Got attendances for lesson with ID {}", lesson_id);
         Ok(attendances)
@@ -79,7 +88,7 @@ impl AttendanceService {
         &self,
         attendance_id: i32,
         update_attendance: UpdateAttendance,
-    ) -> Result<Attendance, AppError> {
+    ) -> Result<AttendanceWithRelations, AppError> {
         let updated_attendance = self
             .attendance_repository
             .update(attendance_id, update_attendance)?;

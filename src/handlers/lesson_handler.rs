@@ -10,7 +10,7 @@ use crate::{
     error::AppError,
     logic::services::{attendance_service::AttendanceService, lesson_service::LessonService},
     models::{
-        attendance::Attendance,
+        attendance::AttendanceWithRelations,
         lesson::{LessonWithRelations, NewLesson, UpdateLesson},
     },
 };
@@ -52,7 +52,7 @@ async fn get_lesson(
 async fn get_attendances_for_lesson(
     State(attendace_service): State<AttendanceService>,
     Path(lesson_id): Path<i32>,
-) -> Result<Json<Vec<Attendance>>, AppError> {
+) -> Result<Json<Vec<AttendanceWithRelations>>, AppError> {
     info!("Getting attendances for lesson");
     let attendances = attendace_service.get_by_lesson_id(lesson_id)?;
     Ok(Json(attendances))
