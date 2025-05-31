@@ -17,7 +17,6 @@ use crate::{
 };
 
 pub fn router() -> OpenApiRouter<AppState> {
-    //TODO: добавить пермишены
     let dont_need_permissions = OpenApiRouter::new()
         .routes(routes!(
             create_teacher,
@@ -33,7 +32,28 @@ pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
-#[utoipa::path(post, path = "/", request_body = NewTeacher)]
+/// Создание нового преподавателя
+///
+/// Этот эндпоинт позволяет создать нового преподавателя в базе данных.
+///
+/// ### Входные данные:
+/// - `name`: Имя преподавателя (обязательное поле)
+///
+/// ### Ответы:
+/// - **201 Created**: Преподаватель успешно создан. Возвращает данные созданного преподавателя.
+/// - **400 Bad Request**: Неверные входные данные (например, отсутствует обязательное поле).
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    post,
+    path = "/",
+    request_body = NewTeacher,
+    responses(
+        (status = 201, body = Teacher, description = "Преподаватель успешно создан"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
+)]
 async fn create_teacher(
     State(teacher_service): State<TeacherService>,
     Json(new_teacher): Json<NewTeacher>,
@@ -43,11 +63,37 @@ async fn create_teacher(
     Ok(Json(new_teacher))
 }
 
+/// Загрузка документа для преподавателя
+///
+/// Этот эндпоинт позволяет загрузить документ для конкретного преподавателя.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+///
+/// ### Входные данные:
+/// - `document`: Файл документа в формате multipart/form-data
+///
+/// ### Ответы:
+/// - **201 Created**: Документ успешно загружен. Возвращает данные документа.
+/// - **400 Bad Request**: Неверные входные данные или отсутствует файл.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
 #[utoipa::path(
     post,
     path = "/{id}/documents",
-    params(("id" = i32, Path, description = "ID учителя к которому загружаем документ")),
-    request_body(content_type = "multipart/form-data", content = DocumentFileForm, description = "Загружаемый документ")
+    params(
+        ("id" = i32, Path, description = "ID преподавателя к которому загружаем документ")
+    ),
+    request_body(
+        content_type = "multipart/form-data",
+        content = DocumentFileForm,
+        description = "Загружаемый документ"
+    ),
+    responses(
+        (status = 201, body = Document, description = "Документ успешно загружен"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
 )]
 async fn upload_document(
     State(document_service): State<DocumentService>,
@@ -59,7 +105,30 @@ async fn upload_document(
     Ok(Json(document))
 }
 
-#[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого учителя")))]
+/// Получение преподавателя по ID
+///
+/// Этот эндпоинт позволяет получить данные конкретного преподавателя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Данные преподавателя успешно получены.
+/// - **404 Not Found**: Преподаватель с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID запрашиваемого преподавателя")
+    ),
+    responses(
+        (status = 200, body = Teacher, description = "Данные преподавателя успешно получены"),
+        (status = 404, description = "Преподаватель не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
+)]
 async fn get_teacher(
     State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
@@ -69,7 +138,30 @@ async fn get_teacher(
     Ok(Json(teacher))
 }
 
-#[utoipa::path(get, path = "/{id}/documents", params(("id" = i32, Path, description = "ID учителя у которого запрашиваются документы")))]
+/// Получение всех документов преподавателя
+///
+/// Этот эндпоинт позволяет получить список всех документов, связанных с конкретным преподавателем.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Список документов успешно получен.
+/// - **404 Not Found**: Преподаватель с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    get,
+    path = "/{id}/documents",
+    params(
+        ("id" = i32, Path, description = "ID преподавателя у которого запрашиваются документы")
+    ),
+    responses(
+        (status = 200, body = Vec<Document>, description = "Список документов успешно получен"),
+        (status = 404, description = "Преподаватель не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
+)]
 async fn get_teacher_documents(
     State(document_service): State<DocumentService>,
     Path(teacher_id): Path<i32>,
@@ -79,7 +171,36 @@ async fn get_teacher_documents(
     Ok(Json(documents))
 }
 
-#[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Учителя которого требуется обновить")), request_body = UpdateTeacher)]
+/// Обновление существующего преподавателя
+///
+/// Этот эндпоинт позволяет обновить данные преподавателя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+///
+/// ### Входные данные:
+/// - `name`: Новое имя преподавателя (необязательное поле)
+///
+/// ### Ответы:
+/// - **200 OK**: Данные преподавателя успешно обновлены.
+/// - **404 Not Found**: Преподаватель с указанным ID не найден.
+/// - **400 Bad Request**: Неверные входные данные.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID преподавателя который требуется обновить")
+    ),
+    request_body = UpdateTeacher,
+    responses(
+        (status = 200, body = Teacher, description = "Данные преподавателя успешно обновлены"),
+        (status = 404, description = "Преподаватель не найден"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
+)]
 async fn update_teacher(
     State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
@@ -90,7 +211,30 @@ async fn update_teacher(
     Ok(Json(updated_teacher))
 }
 
-#[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Учителя которого требуется удалить")))]
+/// Удаление преподавателя
+///
+/// Этот эндпоинт позволяет удалить существующего преподавателя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Преподаватель успешно удален.
+/// - **404 Not Found**: Преподаватель с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    delete,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID преподавателя который требуется удалить")
+    ),
+    responses(
+        (status = 200, body = String, description = "Преподаватель успешно удален"),
+        (status = 404, description = "Преподаватель не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
+)]
 async fn delete_teacher(
     State(teacher_service): State<TeacherService>,
     Path(teacher_id): Path<i32>,
@@ -104,16 +248,31 @@ async fn delete_teacher(
     }
 }
 
+/// Удаление документа преподавателя
+///
+/// Этот эндпоинт позволяет удалить конкретный документ преподавателя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID преподавателя (обязательный путь)
+/// - `document_id`: ID документа (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Документ успешно удален.
+/// - **404 Not Found**: Документ или преподаватель с указанными ID не найдены.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
 #[utoipa::path(
     delete,
     path = "/{id}/documents/{document_id}",
     params(
-        ("id" = i32, Path, description = "ID учителя"),
+        ("id" = i32, Path, description = "ID преподавателя"),
         ("document_id" = Uuid, Path, description = "ID документа который нужно удалить")
     ),
     responses(
-        (status = 200, description = "Документ удален", body = String)
-    )
+        (status = 200, body = String, description = "Документ удален"),
+        (status = 404, description = "Документ или преподаватель не найдены"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Teacher"
 )]
 async fn delete_document(
     State(document_service): State<DocumentService>,
