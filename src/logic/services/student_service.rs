@@ -5,7 +5,7 @@ use crate::{
     AppState,
     error::AppError,
     logic::repositories::student_repository::StudentRepository,
-    models::student::{NewStudent, Student, UpdateStudent},
+    models::student::{NewStudent, StudentWithRelations, UpdateStudent},
 };
 
 #[derive(Clone)]
@@ -18,19 +18,25 @@ impl StudentService {
         Self { student_repository }
     }
 
-    pub fn create(&self, new_student: NewStudent) -> Result<Student, AppError> {
-        let student = self.student_repository.create(new_student)?;
-        info!("Successfully created student with ID {}", student.id);
-        Ok(student)
+    pub fn create(&self, new_student: NewStudent) -> Result<StudentWithRelations, AppError> {
+        let student_full = self.student_repository.create(new_student)?;
+        info!(
+            "Successfully created student with ID {}",
+            student_full.student.id
+        );
+        Ok(student_full)
     }
 
-    pub fn get(&self, student_id: i32) -> Result<Student, AppError> {
+    pub fn get(&self, student_id: i32) -> Result<StudentWithRelations, AppError> {
         let student = self.student_repository.get(student_id)?;
         info!("Student with ID {} successfully get", student_id);
         Ok(student)
     }
 
-    pub fn get_students_from_group(&self, student_group_id: i32) -> Result<Vec<Student>, AppError> {
+    pub fn get_students_from_group(
+        &self,
+        student_group_id: i32,
+    ) -> Result<Vec<StudentWithRelations>, AppError> {
         let students = self
             .student_repository
             .get_students_by_group_id(student_group_id)?;
@@ -42,7 +48,7 @@ impl StudentService {
         &self,
         student_id: i32,
         update_student: UpdateStudent,
-    ) -> Result<Student, AppError> {
+    ) -> Result<StudentWithRelations, AppError> {
         let updated_student = self.student_repository.update(student_id, update_student)?;
         info!("Student with ID {} was successfully updated", student_id);
         Ok(updated_student)

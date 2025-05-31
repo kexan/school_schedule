@@ -50,10 +50,10 @@ impl AttendanceService {
             .get_students_from_group(student_group_id)?;
         let mut new_attendances = Vec::new();
 
-        for student in students {
+        for student_full in students {
             let new_attendance = NewAttendance {
                 lesson_id,
-                student_id: student.id,
+                student_id: student_full.student.id,
                 is_present: false,
                 skip_reason: None,
             };

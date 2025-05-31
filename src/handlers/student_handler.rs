@@ -9,7 +9,7 @@ use crate::{
     AppState,
     error::AppError,
     logic::services::student_service::StudentService,
-    models::student::{NewStudent, Student, UpdateStudent},
+    models::student::{NewStudent, StudentWithRelations, UpdateStudent},
 };
 
 pub fn router() -> OpenApiRouter<AppState> {
@@ -26,7 +26,7 @@ pub fn router() -> OpenApiRouter<AppState> {
 async fn create_student(
     State(student_service): State<StudentService>,
     Json(new_student): Json<NewStudent>,
-) -> Result<Json<Student>, AppError> {
+) -> Result<Json<StudentWithRelations>, AppError> {
     info!("Creating new student");
     let new_student = student_service.create(new_student)?;
     Ok(Json(new_student))
@@ -36,7 +36,7 @@ async fn create_student(
 async fn get_student(
     State(student_service): State<StudentService>,
     Path(student_id): Path<i32>,
-) -> Result<Json<Student>, AppError> {
+) -> Result<Json<StudentWithRelations>, AppError> {
     info!("Getting student");
     let student = student_service.get(student_id)?;
     Ok(Json(student))
@@ -47,7 +47,7 @@ async fn update_student(
     State(student_service): State<StudentService>,
     Path(student_id): Path<i32>,
     Json(update_student): Json<UpdateStudent>,
-) -> Result<Json<Student>, AppError> {
+) -> Result<Json<StudentWithRelations>, AppError> {
     info!("Updating student");
     let updated_student = student_service.update(student_id, update_student)?;
     Ok(Json(updated_student))
