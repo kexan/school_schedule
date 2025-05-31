@@ -1,3 +1,4 @@
+pub mod attendance;
 pub mod document;
 pub mod lesson;
 pub mod parent;
