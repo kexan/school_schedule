@@ -22,7 +22,29 @@ pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
-#[utoipa::path(post, path = "/", request_body = NewParent)]
+/// Создание нового родителя
+///
+/// Этот эндпоинт позволяет создать нового родителя в базе данных.
+///
+/// ### Входные данные:
+/// - `name`: Имя родителя (обязательное поле)
+/// - `additional_info`: Дополнительная информация (необязательное поле)
+///
+/// ### Ответы:
+/// - **201 Created**: Родитель успешно создан. Возвращает данные созданного родителя.
+/// - **400 Bad Request**: Неверные входные данные (например, отсутствуют обязательные поля).
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    post,
+    path = "/",
+    request_body = NewParent,
+    responses(
+        (status = 201, body = Parent, description = "Родитель успешно создан"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Parent"
+)]
 async fn create_parent(
     State(parent_service): State<ParentService>,
     Json(new_parent): Json<NewParent>,
@@ -32,7 +54,30 @@ async fn create_parent(
     Ok(Json(new_parent))
 }
 
-#[utoipa::path(get, path = "/{id}", params(("id" = i32, Path, description = "ID запрашиваемого родителя")))]
+/// Получение родителя по ID
+///
+/// Этот эндпоинт позволяет получить данные конкретного родителя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID родителя (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Данные родителя успешно получены.
+/// - **404 Not Found**: Родитель с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    get,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID запрашиваемого родителя")
+    ),
+    responses(
+        (status = 200, body = Parent, description = "Данные родителя успешно получены"),
+        (status = 404, description = "Родитель не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Parent"
+)]
 async fn get_parent(
     State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
@@ -42,7 +87,37 @@ async fn get_parent(
     Ok(Json(parent))
 }
 
-#[utoipa::path(put, path = "/{id}", params(("id" = i32, Path, description = "ID Родителя которого требуется обновить")), request_body = UpdateParent)]
+/// Обновление существующего родителя
+///
+/// Этот эндпоинт позволяет обновить данные родителя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID родителя (обязательный путь)
+///
+/// ### Входные данные:
+/// - `name`: Новое имя родителя (необязательное поле)
+/// - `additional_info`: Новая дополнительная информация (необязательное поле)
+///
+/// ### Ответы:
+/// - **200 OK**: Данные родителя успешно обновлены.
+/// - **404 Not Found**: Родитель с указанным ID не найден.
+/// - **400 Bad Request**: Неверные входные данные.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    put,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID родителя которого требуется обновить")
+    ),
+    request_body = UpdateParent,
+    responses(
+        (status = 200, body = Parent, description = "Данные родителя успешно обновлены"),
+        (status = 404, description = "Родитель не найден"),
+        (status = 400, description = "Неверные входные данные"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Parent"
+)]
 async fn update_parent(
     State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
@@ -53,7 +128,30 @@ async fn update_parent(
     Ok(Json(updated_parent))
 }
 
-#[utoipa::path(delete, path = "/{id}", params(("id" = i32, Path, description = "ID Родителя которого требуется удалить")))]
+/// Удаление родителя
+///
+/// Этот эндпоинт позволяет удалить существующего родителя по его идентификатору.
+///
+/// ### Параметры:
+/// - `id`: ID родителя (обязательный путь)
+///
+/// ### Ответы:
+/// - **200 OK**: Родитель успешно удален.
+/// - **404 Not Found**: Родитель с указанным ID не найден.
+/// - **500 Internal Server Error**: Внутренняя ошибка сервера.
+#[utoipa::path(
+    delete,
+    path = "/{id}",
+    params(
+        ("id" = i32, Path, description = "ID родителя которого требуется удалить")
+    ),
+    responses(
+        (status = 200, body = String, description = "Родитель успешно удален"),
+        (status = 404, description = "Родитель не найден"),
+        (status = 500, description = "Внутренняя ошибка сервера")
+    ),
+    tag = "Parent"
+)]
 async fn delete_parent(
     State(parent_service): State<ParentService>,
     Path(parent_id): Path<i32>,
