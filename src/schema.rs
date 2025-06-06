@@ -1,5 +1,11 @@
 // @generated automatically by Diesel CLI.
 
+pub mod sql_types {
+    #[derive(diesel::query_builder::QueryId, Clone, diesel::sql_types::SqlType)]
+    #[diesel(postgres_type(name = "permission_role"))]
+    pub struct PermissionRole;
+}
+
 diesel::table! {
     attendances (id) {
         id -> Int4,
@@ -16,13 +22,6 @@ diesel::table! {
         name -> Varchar,
         uploaded_at -> Timestamp,
         teacher_id -> Int4,
-    }
-}
-
-diesel::table! {
-    images (id) {
-        id -> Uuid,
-        image_url -> Text,
     }
 }
 
@@ -70,23 +69,14 @@ diesel::table! {
 }
 
 diesel::table! {
+    use diesel::sql_types::*;
+    use super::sql_types::PermissionRole;
+
     users (id) {
         id -> Int4,
         username -> Text,
         password -> Text,
-        role -> Text,
-    }
-}
-
-diesel::table! {
-    vns (id) {
-        id -> Int4,
-        title -> Text,
-        alternative_titles -> Nullable<Array<Nullable<Text>>>,
-        description -> Nullable<Text>,
-        short_description -> Nullable<Text>,
-        image_url -> Nullable<Text>,
-        rating -> Nullable<Float8>,
+        role -> PermissionRole,
     }
 }
 
@@ -101,12 +91,10 @@ diesel::joinable!(students -> student_groups (student_group_id));
 diesel::allow_tables_to_appear_in_same_query!(
     attendances,
     documents,
-    images,
     lessons,
     parents,
     student_groups,
     students,
     teachers,
     users,
-    vns,
 );

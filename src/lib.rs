@@ -5,6 +5,7 @@ use logic::services::{
     teacher_service::TeacherService,
 };
 
+pub mod auth;
 pub mod db;
 pub mod error;
 pub mod handlers;
