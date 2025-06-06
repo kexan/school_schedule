@@ -18,7 +18,7 @@ pub struct AuthBackend {
 }
 
 impl AuthBackend {
-    pub fn new(&self, pool: PostgresPool) -> Self {
+    pub fn new(pool: PostgresPool) -> Self {
         AuthBackend { pool }
     }
 }
@@ -59,7 +59,7 @@ impl AuthnBackend for AuthBackend {
 #[derive(Deserialize, Clone, ToSchema)]
 pub struct Credentials {
     pub username: String,
-    pub password: String,
+    password: String,
 }
 
 impl Credentials {

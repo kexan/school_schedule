@@ -1,11 +1,9 @@
 use std::fmt::Debug;
 
 use diesel::prelude::*;
+use diesel_derive_enum::DbEnum;
 
-use crate::{
-    auth::permissions::PermissionRole,
-    schema::users::{self},
-};
+use crate::schema::users::{self};
 use axum_login::AuthUser;
 use password_auth::verify_password;
 use serde::{Deserialize, Serialize};
@@ -53,4 +51,13 @@ impl AuthUser for User {
 pub struct UpdateUser {
     pub username: Option<String>,
     pub role: Option<PermissionRole>,
+}
+
+#[derive(Debug, Clone, DbEnum, Serialize, Deserialize, ToSchema)]
+#[db_enum(existing_type_path = "crate::schema::sql_types::PermissionRole")]
+pub enum PermissionRole {
+    User,
+    Teacher,
+    Director,
+    Admin,
 }

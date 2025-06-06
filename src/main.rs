@@ -1,10 +1,15 @@
-use axum_login::tower_sessions::SessionManagerLayer;
 use dotenvy::dotenv;
-use school_schedule::{AppState, db, handlers, logic::services, open_api::ApiDoc};
+use school_schedule::{
+    AppState,
+    auth::{self},
+    db, handlers,
+    logic::services,
+    open_api::ApiDoc,
+};
 use std::io::Error;
 use tokio::net::TcpListener;
 use tower_http::trace::TraceLayer;
-use tower_sessions_redis_store::{RedisStore, fred::prelude::ClientLike};
+use tower_sessions_redis_store::fred::prelude::ClientLike;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 use utoipa::OpenApi;
@@ -21,16 +26,15 @@ async fn main() -> Result<(), Error> {
         .wait_for_connect()
         .await
         .expect("Failed to create Redis connection");
-    let session_store = RedisStore::new(redis_pool);
-    //TODO: SSL support
-    let _session_layer = SessionManagerLayer::new(session_store).with_secure(false);
 
     let postgres_pool = db::establish_postgres_connection();
     db::run_db_migrations(&postgres_pool);
+    let auth_layer = auth::get_auth_layer(postgres_pool.clone(), redis_pool);
     let services = services::init_app_services(postgres_pool);
     let state = AppState { services };
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
+        .nest("api/v1/auth", handlers::auth_handler::router())
         .nest("/api/v1/students", handlers::student_handler::router())
         .nest(
             "/api/v1/student_groups",
@@ -44,6 +48,7 @@ async fn main() -> Result<(), Error> {
             handlers::attendances_handler::router(),
         )
         .layer(TraceLayer::new_for_http())
+        .layer(auth_layer)
         .with_state(state)
         .split_for_parts();
 
