@@ -5,9 +5,9 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 
 use crate::{
     AppState,
-    auth::backend::{AuthBackend, Credentials},
+    auth::backend::AuthBackend,
     error::AppError,
-    models::user::User,
+    models::user::{Credentials, User},
 };
 
 pub fn router() -> OpenApiRouter<AppState> {

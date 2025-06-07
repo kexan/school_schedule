@@ -7,6 +7,7 @@ pub(super) mod parent_repository;
 pub(super) mod student_group_repository;
 pub(super) mod student_repository;
 pub(super) mod teacher_repository;
+pub(super) mod user_repository;
 
 pub(super) fn single_result<T>(vec: Vec<T>) -> Result<T, AppError> {
     vec.into_iter()

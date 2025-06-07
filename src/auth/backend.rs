@@ -1,16 +1,13 @@
 use crate::{
     db::PostgresPool,
     error::AppError,
-    models::user::User,
+    models::user::{Credentials, User},
     schema::users::{self},
 };
 use async_trait::async_trait;
 use axum_login::{AuthnBackend, UserId};
 use diesel::prelude::*;
-use password_auth::generate_hash;
-use serde::Deserialize;
 use tracing::info;
-use utoipa::ToSchema;
 
 #[derive(Clone)]
 pub struct AuthBackend {
@@ -40,7 +37,7 @@ impl AuthnBackend for AuthBackend {
             .first(&mut connection)
             .optional()?;
 
-        Ok(user_result.filter(|user| user.check_password(&creds.password)))
+        Ok(user_result.filter(|user| user.check_password(creds)))
     }
 
     async fn get_user(&self, user_id: &UserId<Self>) -> Result<Option<Self::User>, Self::Error> {
@@ -53,20 +50,5 @@ impl AuthnBackend for AuthBackend {
             .optional()?;
 
         Ok(user_result)
-    }
-}
-
-#[derive(Deserialize, Clone, ToSchema)]
-pub struct Credentials {
-    pub username: String,
-    password: String,
-}
-
-impl Credentials {
-    pub fn new(new_username: &str, new_password: &str) -> Self {
-        Self {
-            username: new_username.to_string(),
-            password: generate_hash(new_password),
-        }
     }
 }

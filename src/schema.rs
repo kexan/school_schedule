@@ -26,6 +26,13 @@ diesel::table! {
 }
 
 diesel::table! {
+    images (id) {
+        id -> Uuid,
+        image_url -> Text,
+    }
+}
+
+diesel::table! {
     lessons (id) {
         id -> Int4,
         topic -> Varchar,
@@ -77,6 +84,19 @@ diesel::table! {
         username -> Text,
         password -> Text,
         role -> PermissionRole,
+        full_name -> Nullable<Text>,
+    }
+}
+
+diesel::table! {
+    vns (id) {
+        id -> Int4,
+        title -> Text,
+        alternative_titles -> Nullable<Array<Nullable<Text>>>,
+        description -> Nullable<Text>,
+        short_description -> Nullable<Text>,
+        image_url -> Nullable<Text>,
+        rating -> Nullable<Float8>,
     }
 }
 
@@ -91,10 +111,12 @@ diesel::joinable!(students -> student_groups (student_group_id));
 diesel::allow_tables_to_appear_in_same_query!(
     attendances,
     documents,
+    images,
     lessons,
     parents,
     student_groups,
     students,
     teachers,
     users,
+    vns,
 );
