@@ -1,6 +1,8 @@
+use axum::extract::FromRef;
 use tracing::info;
 
 use crate::{
+    AppState,
     error::AppError,
     logic::repositories::user_repository::UserRepository,
     models::user::{Credentials, NewUser, NewUserWithPassword, UpdateUser, User},
@@ -47,5 +49,11 @@ impl UserService {
             info!("User with ID {} not found", user_id);
             Ok(false)
         }
+    }
+}
+
+impl FromRef<AppState> for UserService {
+    fn from_ref(state: &AppState) -> Self {
+        state.services.user_service.clone()
     }
 }

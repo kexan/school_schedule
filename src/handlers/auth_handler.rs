@@ -10,6 +10,7 @@ use crate::{
     models::user::{Credentials, User},
 };
 
+//TODO: Документация
 pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new()
         .routes(routes!(login))
