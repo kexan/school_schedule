@@ -35,6 +35,7 @@ async fn main() -> Result<(), Error> {
 
     let (router, open_api) = OpenApiRouter::with_openapi(ApiDoc::openapi())
         .nest("/api/v1/auth", handlers::auth_handler::router())
+        .nest("/api/v1/users", handlers::user_handler::router())
         .nest("/api/v1/students", handlers::student_handler::router())
         .nest(
             "/api/v1/student_groups",

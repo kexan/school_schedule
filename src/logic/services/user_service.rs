@@ -5,7 +5,7 @@ use crate::{
     AppState,
     error::AppError,
     logic::repositories::user_repository::UserRepository,
-    models::user::{Credentials, NewUser, NewUserWithPassword, UpdateUser, User},
+    models::user::{NewUser, RawNewUser, UpdateUser, User},
 };
 
 #[derive(Clone)]
@@ -18,8 +18,8 @@ impl UserService {
         Self { user_repository }
     }
 
-    pub fn create(&self, new_user: NewUser, creds: Credentials) -> Result<User, AppError> {
-        let new_user = NewUserWithPassword::new(new_user, creds);
+    pub fn create(&self, raw_new_user: RawNewUser) -> Result<User, AppError> {
+        let new_user = NewUser::from(raw_new_user);
         let new_user = self.user_repository.create(new_user)?;
         info!(
             "Successfully created user with ID {} and username {}",

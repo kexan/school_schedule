@@ -3,7 +3,7 @@ use diesel::{QueryDsl, RunQueryDsl};
 use crate::{
     db::PostgresPool,
     error::AppError,
-    models::user::{NewUserWithPassword, UpdateUser, User},
+    models::user::{NewUser, UpdateUser, User},
     schema::users,
 };
 
@@ -17,7 +17,7 @@ impl UserRepository {
         Self { pool }
     }
 
-    pub fn create(&self, new_user: NewUserWithPassword) -> Result<User, AppError> {
+    pub fn create(&self, new_user: NewUser) -> Result<User, AppError> {
         let mut connection = self.pool.get()?;
         Ok(diesel::insert_into(users::table)
             .values(&new_user)

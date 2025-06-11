@@ -32,9 +32,9 @@ impl AuthnBackend for AuthBackend {
     ) -> Result<Option<Self::User>, Self::Error> {
         info!("Trying to authenticate user {}", &creds.username);
         let mut connection = self.pool.get()?;
-        let user_result: Option<User> = users::table
+        let user_result = users::table
             .filter(users::username.eq(&creds.username))
-            .first(&mut connection)
+            .first::<User>(&mut connection)
             .optional()?;
 
         Ok(user_result.filter(|user| user.check_password(creds)))
@@ -44,9 +44,9 @@ impl AuthnBackend for AuthBackend {
         info!("Trying get user with id {}", &user_id);
         let mut connection = self.pool.get()?;
 
-        let user_result: Option<User> = users::table
-            .filter(users::id.eq(user_id))
-            .first(&mut connection)
+        let user_result = users::table
+            .find(user_id)
+            .first::<User>(&mut connection)
             .optional()?;
 
         Ok(user_result)

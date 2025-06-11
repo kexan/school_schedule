@@ -17,7 +17,7 @@ pub fn router() -> OpenApiRouter<AppState> {
         .routes(routes!(logout))
 }
 
-#[utoipa::path(post, path = "/login", responses((status = 200, description = "Пользователь успешно авторизован"), (status = 401, description = "Неверные данные")))]
+#[utoipa::path(post, path = "/login", responses((status = 200, description = "Пользователь успешно авторизован"), (status = 401, description = "Неверные данные")), tag = "Auth")]
 async fn login(
     mut auth_session: AuthSession<AuthBackend>,
     Form(creds): Form<Credentials>,
@@ -40,7 +40,7 @@ async fn login(
     }
 }
 
-#[utoipa::path(post, path = "/logout", responses((status = 200, description = "Пользователь успешно разлогинен")))]
+#[utoipa::path(post, path = "/logout", responses((status = 200, description = "Пользователь успешно разлогинен")), tag = "Auth")]
 async fn logout(mut auth_session: AuthSession<AuthBackend>) -> Result<StatusCode, AppError> {
     match auth_session.logout().await {
         Ok(_) => Ok(StatusCode::OK),

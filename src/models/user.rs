@@ -47,29 +47,31 @@ impl AuthUser for User {
     }
 }
 
-#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
-#[diesel(table_name = users)]
-pub struct NewUser {
-    pub full_name: Option<String>,
-}
-
-#[derive(Insertable)]
-#[diesel(table_name = users)]
-pub struct NewUserWithPassword {
+#[derive(Deserialize, ToSchema)]
+pub struct RawNewUser {
     username: String,
     password: String,
     full_name: Option<String>,
 }
 
-impl NewUserWithPassword {
-    pub fn new(new_user: NewUser, creds: Credentials) -> Self {
+#[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
+#[diesel(table_name = users)]
+pub struct NewUser {
+    pub username: String,
+    password: String,
+    pub full_name: Option<String>,
+}
+
+impl From<RawNewUser> for NewUser {
+    fn from(raw: RawNewUser) -> Self {
         Self {
-            username: creds.username,
-            password: creds.password,
-            full_name: new_user.full_name,
+            username: raw.username,
+            password: generate_hash(raw.password),
+            full_name: raw.full_name,
         }
     }
 }
+
 #[derive(Insertable, AsChangeset, ToSchema, Deserialize)]
 #[diesel(table_name = users)]
 pub struct UpdateUser {

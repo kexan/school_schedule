@@ -9,35 +9,33 @@ use crate::{
     AppState,
     error::AppError,
     logic::services::user_service::UserService,
-    models::user::{UpdateUser, User},
+    models::user::{RawNewUser, UpdateUser, User},
 };
 
 //TODO: Документация
 pub fn router() -> OpenApiRouter<AppState> {
     let dont_need_permissions =
-        OpenApiRouter::new().routes(routes!(get_user, update_user, delete_user));
+        OpenApiRouter::new().routes(routes!(create_user, get_user, update_user, delete_user));
     OpenApiRouter::new().merge(dont_need_permissions)
 }
 
-//TODO: нельзя использовать и жсон и форм
-// #[utoipa::path(post,
-//     path = "/",
-//     responses(
-//         (status = 200, description = "Пользователь успешно создан"),
-//         (status = 400, description = "Неверные данные")
-//     ),
-//     tag = "User"
-// )]
-// #[axum::debug_handler]
-// async fn create_user(
-//     State(user_service): State<UserService>,
-//     Json(new_user): Json<NewUser>,
-//     Form(creds): Form<Credentials>,
-// ) -> Result<Json<User>, AppError> {
-//     info!("Creating new user");
-//     let new_user = user_service.create(new_user, creds)?;
-//     Ok(Json(new_user))
-// }
+#[utoipa::path(post,
+    path = "/",
+    responses(
+        (status = 200, description = "Пользователь успешно создан"),
+        (status = 400, description = "Неверные данные")
+    ),
+    tag = "User"
+)]
+#[axum::debug_handler]
+async fn create_user(
+    State(user_service): State<UserService>,
+    Json(new_user): Json<RawNewUser>,
+) -> Result<Json<User>, AppError> {
+    info!("Creating new user");
+    let new_user = user_service.create(new_user)?;
+    Ok(Json(new_user))
+}
 
 #[utoipa::path(
     get,
