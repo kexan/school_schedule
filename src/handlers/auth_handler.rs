@@ -10,14 +10,35 @@ use crate::{
     models::user::{Credentials, User},
 };
 
-//TODO: Документация
 pub fn router() -> OpenApiRouter<AppState> {
     OpenApiRouter::new()
         .routes(routes!(login))
         .routes(routes!(logout))
 }
 
-#[utoipa::path(post, path = "/login", responses((status = 200, description = "Пользователь успешно авторизован"), (status = 401, description = "Неверные данные")), tag = "Auth")]
+/// Вход пользователя в систему
+///
+/// Этот эндпоинт позволяет авторизовать пользователя по его логину и паролю.
+///
+/// ### Входные данные:
+/// - `username`: Имя пользователя (обязательное поле)
+/// - `password`: Пароль (обязательное поле)
+///
+/// ### Ответы:
+/// - **200 OK**: Пользователь успешно авторизован. Возвращает объект пользователя.
+/// - **401 Unauthorized**: Неверный логин или пароль.
+/// - **500 Internal Server Error**: Ошибка сервера при аутентификации.
+#[utoipa::path(
+    post,
+    path = "/login",
+    request_body = Credentials,
+    responses(
+        (status = 200, body = User, description = "Пользователь успешно авторизован"),
+        (status = 401, description = "Неверные данные"),
+        (status = 500, description = "Ошибка сервера")
+    ),
+    tag = "Auth"
+)]
 async fn login(
     mut auth_session: AuthSession<AuthBackend>,
     Form(creds): Form<Credentials>,
@@ -40,7 +61,22 @@ async fn login(
     }
 }
 
-#[utoipa::path(post, path = "/logout", responses((status = 200, description = "Пользователь успешно разлогинен")), tag = "Auth")]
+/// Выход пользователя из системы
+///
+/// Этот эндпоинт завершает сессию текущего пользователя.
+///
+/// ### Ответы:
+/// - **200 OK**: Пользователь успешно разлогинен.
+/// - **500 Internal Server Error**: Ошибка сервера при выходе.
+#[utoipa::path(
+    post,
+    path = "/logout",
+    responses(
+        (status = 200, description = "Пользователь успешно разлогинен"),
+        (status = 500, description = "Ошибка сервера")
+    ),
+    tag = "Auth"
+)]
 async fn logout(mut auth_session: AuthSession<AuthBackend>) -> Result<StatusCode, AppError> {
     match auth_session.logout().await {
         Ok(_) => Ok(StatusCode::OK),
