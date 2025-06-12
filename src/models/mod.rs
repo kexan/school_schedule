@@ -5,3 +5,5 @@ pub mod parent;
 pub mod student;
 pub mod student_group;
 pub mod teacher;
+pub mod user;
+

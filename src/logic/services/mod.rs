@@ -12,7 +12,11 @@ use super::repositories::{
     student_group_repository::StudentGroupRepository, student_repository::StudentRepository,
     teacher_repository::TeacherRepository,
 };
-use crate::{AppServices, db::PostgresPool};
+use crate::{
+    AppServices,
+    db::PostgresPool,
+    logic::{repositories::user_repository::UserRepository, services::user_service::UserService},
+};
 
 pub mod attendance_service;
 pub mod document_service;
@@ -21,6 +25,7 @@ pub mod parent_service;
 pub mod student_group_service;
 pub mod student_service;
 pub mod teacher_service;
+pub mod user_service;
 
 pub fn init_app_services(pool: PostgresPool) -> AppServices {
     let lesson_repo = LessonRepository::new(pool.clone());
@@ -30,6 +35,7 @@ pub fn init_app_services(pool: PostgresPool) -> AppServices {
     let teacher_repo = TeacherRepository::new(pool.clone());
     let attendance_repo = AttendanceRepository::new(pool.clone());
     let document_repo = DocumentRepository::new(pool.clone());
+    let user_repo = UserRepository::new(pool.clone());
 
     let lesson_service = LessonService::new(
         lesson_repo.clone(),
@@ -44,6 +50,7 @@ pub fn init_app_services(pool: PostgresPool) -> AppServices {
     let teacher_service = TeacherService::new(teacher_repo);
     let attendance_service = AttendanceService::new(attendance_repo, student_service.clone());
     let document_service = DocumentService::new(document_repo);
+    let user_service = UserService::new(user_repo);
 
     AppServices {
         lesson_service,
@@ -53,5 +60,6 @@ pub fn init_app_services(pool: PostgresPool) -> AppServices {
         teacher_service,
         attendance_service,
         document_service,
+        user_service,
     }
 }

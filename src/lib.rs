@@ -5,6 +5,9 @@ use logic::services::{
     teacher_service::TeacherService,
 };
 
+use crate::logic::services::user_service::UserService;
+
+pub mod auth;
 pub mod db;
 pub mod error;
 pub mod handlers;
@@ -27,4 +30,5 @@ pub struct AppServices {
     pub teacher_service: TeacherService,
     pub attendance_service: AttendanceService,
     pub document_service: DocumentService,
+    pub user_service: UserService,
 }

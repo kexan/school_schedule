@@ -10,10 +10,16 @@ axum = { version = '0.8.4', features = ['multipart', 'macros'] }
 axum-login = { version = '0.17.0' }
 tower-sessions-redis-store = { version = '0.16.0' }
 password-auth = { version = '1.0.0' }
-tokio = { version = '1.45.0', features = ['full'] }
-tower-http = { version = '0.6.4', features = ['trace'] }
-diesel = { version = '2.2.10', features = ['postgres', 'chrono', 'r2d2', 'uuid'] }
+tokio = { version = '1.45.1', features = ['full'] }
+tower-http = { version = '0.6.6', features = ['trace'] }
+diesel = { version = '2.2.10', features = [
+  'postgres',
+  'chrono',
+  'r2d2',
+  'uuid',
+] }
 diesel_migrations = { version = '2.2.0' }
+diesel-derive-enum = { version = "3.0.0-beta.1", features = ["postgres"] }
 
 # Logging
 log = { version = '0.4.27' }
@@ -24,12 +30,13 @@ thiserror = { version = '2.0.12' }
 # Swagger generation
 utoipa = { version = "5.3.1", features = ['axum_extras', 'chrono', 'uuid'] }
 utoipa-axum = { version = '0.2.0' }
-utoipa-swagger-ui = { version = '9.0.1', features = ['axum'] }
+utoipa-swagger-ui = { version = '9.0.2', features = ['axum'] }
 
 # Other dependencies
 dotenvy = { version = '0.15.7' }
 serde = { version = '1.0.219', features = ['derive'] }
 strum = { version = '0.27.1', features = ['derive'] }
-chrono = { version = '0.4.41', features = ['serde']}
+chrono = { version = '0.4.41', features = ['serde'] }
 r2d2 = { version = '0.8.10' }
-uuid = { version = '1.16.0', features = ['v4', 'serde'] }
+uuid = { version = '1.17.0', features = ['v4', 'serde'] }
+async-trait = { version = '0.1.88' }
